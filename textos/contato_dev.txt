@@ -1,0 +1,4 @@
+Para mais informações sobre o Bot ou para apresentar falhas e erros mande mensagem para:
+
+link = https://api.whatsapp.com/send?phone=551888003813
+Prints e detalhes sobre o erro são muito bem vindos.

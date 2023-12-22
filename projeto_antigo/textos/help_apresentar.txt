@@ -1,0 +1,5 @@
+Função !apresentar
+A função !apresentar é projetada para fornecer uma mensagem de apresentação sobre o RPG no chat do usuário.
+Uma função simples que manda uma mídia junto com um texto para concluir a apresentação.
+
+OBS: Todos os comandos devem começar com ! e sem espaços, os espaços são utilizados apenas como delimitadores para separar os parâmetros em alguns comandos específicos.

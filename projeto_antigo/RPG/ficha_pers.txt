@@ -1,0 +1,43 @@
+FICHA DO PERSONAGEM
+
+#Nome:
+
+#Idade:
+(Mínimo 18, máximo 30)
+
+#Aparência:
+(Apenas 2D e 3D)
+
+#Personalidade:
+
+#História:
+(Opcional)
+
+#Sexualidade:
+
+#Gênero:
+
+#Altura:
+
+#Peso:
+
+#Organização:
+(Yakuza ou Força-11)
+
+#Carteira:
+(2.000¥ inicialmente, independente da organização)
+
+#Inventário:
+-
+-
+(Consulte a lista de itens iniciais do inventário)
+
+#Atributos:
+300 pontos iniciais para distribuição
+#Força Física: 
+#Resistência Geral:
+#Velocidade/Agilidade:
+#Pontaria/Precisão:
+#Total de Pontos:
+
+!ficha

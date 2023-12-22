@@ -1,0 +1,6 @@
+Comando help está com a sintaxe incorreta! Por favor tente seguindo a sintaxe:
+*!help (nome do comando)*           
+exemplo:
+*!help apresentar*
+
+OBS: Todos os comandos devem começar com ! e sem espaços, os espaços são utilizados apenas como delimitadores para separar os parâmetros em alguns comandos específicos.

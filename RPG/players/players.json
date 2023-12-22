@@ -1,0 +1,77 @@
+{
+    "data": [
+        {
+            "user": {
+                "player_id": 0,
+                "status": "approved",
+                "name": "Isabella Rainheart",
+                "age": "22",
+                "appearance": "Cabelos longos e negros, olhos azuis como o oceano, estatura m\u00e9dia, vestindo roupas elegantes",
+                "personality": "Inteligente, corajosa, leal, mas pode ser reservada com estranhos",
+                "history": "Nascida em uma fam\u00edlia de nobres, Isabella cresceu em um castelo majestoso. Aprendeu desde jovem a arte da diplomacia e da esgrima. Um dia, decidiu deixar sua vida de nobre para tr\u00e1s em busca de aventuras e descobertas.",
+                "sexuality": "Heterossexual",
+                "gender": "Feminino",
+                "height": "165 cm",
+                "weight": "55 kg",
+                "organization": "For\u00e7a-11",
+                "stand_name": "aaaaaa",
+                "stand_type": "distancia",
+                "stand_powers": "o carai de asa",
+                "wallet": 2000,
+                "total_points": 300,
+                "stand_total_points": 300,
+                "attributes": {
+                    "strength": 50,
+                    "resistance": 50,
+                    "speed": 100,
+                    "precision": 50,
+                    "stand_strength": 50,
+                    "stand_resistance": 50,
+                    "stand_speed": 100,
+                    "stand_precision": 50
+                },
+                "inventary": {},
+                "phone_number": "000",
+                "scenes": {
+                    "0": "bbbbbbbbbbbbbbbbbbbb",
+                    "1": "cena aquiiaieunffoui"
+                }
+            }
+        },
+        {
+            "user": {
+                "player_id": 1,
+                "status": "approved",
+                "name": "cu",
+                "age": "22",
+                "appearance": "Cabelos longos e negros, olhos azuis como o oceano, estatura m\u00e9dia, vestindo roupas elegantes",
+                "personality": "Inteligente, corajosa, leal, mas pode ser reservada com estranhos",
+                "history": "Nascida em uma fam\u00edlia de nobres, Isabella cresceu em um castelo majestoso. Aprendeu desde jovem a arte da diplomacia e da esgrima. Um dia, decidiu deixar sua vida de nobre para tr\u00e1s em busca de aventuras e descobertas.",
+                "sexuality": "Heterossexual",
+                "gender": "Feminino",
+                "height": "165 cm",
+                "weight": "55 kg",
+                "organization": "For\u00e7a-11",
+                "stand_name": "aaaaaa",
+                "stand_type": "distancia",
+                "stand_powers": "o carai de asa",
+                "wallet": 2000,
+                "total_points": 101400,
+                "stand_total_points": 101400,
+                "attributes": {
+                    "strength": 1700,
+                    "resistance": 2800,
+                    "speed": 5000,
+                    "precision": 1000,
+                    "stand_strength": 7000,
+                    "stand_resistance": 880,
+                    "stand_speed": 1000,
+                    "stand_precision": 1000
+                },
+                "inventary": {},
+                "phone_number": "+55 18 98800-3813",
+                "scenes": {}
+            }
+        }
+    ]
+}
