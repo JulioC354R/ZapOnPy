@@ -1,10 +1,4 @@
-import json
-import logging
-import os
-import time
-import pyautogui
-import webbrowser
-import keyboard
+
 '''from mensagem import Message
 from comandos import Commands
 mensagem = Message()
@@ -39,17 +33,16 @@ Quisque feugiat semper urna, vel luctus justo dignissim in. Aenean eu urna odio.
 
 Sed eget neque ut metus laoreet iaculis. Phasellus varius, ligula id aliquam tristique, quam libero facilisis tortor, vel euismod ligula sem vitae dolor..
 '''
-#mensagem.send_direct_message(558196052190, texto, True)
-#print(len(texto))
+# mensagem.send_direct_message(558196052190, texto, True)
+# print(len(texto))
 
 
-#webbrowser.open('https://api.whatsapp.com/send?phone=558196052190&text=olaaaa')
-#558188333881
+# webbrowser.open('https://api.whatsapp.com/send?phone=558196052190&text=olaaaa')
+# 558188333881
 
 
-
-#time.sleep(4)
-#print(pyautogui.position())
+# time.sleep(4)
+# print(pyautogui.position())
 '''time.sleep(2)
 
 limpa = mensagem.search_chat('meu numero')
@@ -58,8 +51,6 @@ comando.help('!help')
 time.sleep(0.5)
 
 limpa()'''
-
-
 
 
 '''caminho_atual = os.getcwd()

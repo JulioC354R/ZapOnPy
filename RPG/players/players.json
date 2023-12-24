@@ -69,6 +69,41 @@
                     "stand_precision": 1000
                 },
                 "inventary": {},
+                "phone_number": "+55 18 988",
+                "scenes": {}
+            }
+        },
+        {
+            "user": {
+                "player_id": 2,
+                "status": "approved",
+                "name": "Bbbbbbbb",
+                "age": "22",
+                "appearance": "Cabelos longos e negros, olhos azuis como o oceano, estatura m\u00e9dia, vestindo roupas elegantes",
+                "personality": "Inteligente, corajosa, leal, mas pode ser reservada com estranhos",
+                "history": "Nascida em uma fam\u00edlia de nobres, Isabella cresceu em um castelo majestoso. Aprendeu desde jovem a arte da diplomacia e da esgrima. Um dia, decidiu deixar sua vida de nobre para tr\u00e1s em busca de aventuras e descobertas.",
+                "sexuality": "Heterossexual",
+                "gender": "Feminino",
+                "height": "165 cm",
+                "weight": "55 kg",
+                "organization": "For\u00e7a-11",
+                "stand_name": "aaaaaa",
+                "stand_type": "distancia",
+                "stand_powers": "o carai de asa",
+                "wallet": 2000,
+                "total_points": 450,
+                "stand_total_points": 450,
+                "attributes": {
+                    "strength": 0,
+                    "resistance": 0,
+                    "speed": 0,
+                    "precision": 0,
+                    "stand_strength": 0,
+                    "stand_resistance": 0,
+                    "stand_speed": 0,
+                    "stand_precision": 0
+                },
+                "inventary": {},
                 "phone_number": "+55 18 98800-3813",
                 "scenes": {}
             }

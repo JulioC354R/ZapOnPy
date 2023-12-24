@@ -1,3 +1,4 @@
+from ZapOnPy import ZOP
 import json
 import time
 from commandos import Comandos
@@ -14,7 +15,7 @@ from selenium.webdriver.common.keys import Keys
 dado = Data()
 
 
-ficha= '''
+ficha = '''
 *Ficha do Personagem*
 
 OBS: Ao preencher os dados coloque sempre dentro dos >   <. 
@@ -131,6 +132,21 @@ Nesse mundo, as regras da física não se aplicavam. Elara podia voar mais alto 
 
 Conforme a noite avançava, o encanto do mundo dos sonhos começou a desvanecer. Elara, agora inundada por uma sensação de serenidade e cansaço, sentiu suas pálpebras pesarem. Aos poucos, ela foi se deixando levar pelo chamado do sono, enquanto o mundo dos sonhos se esvaía como névoa ao amanhecer. Quando finalmente adormeceu, Elara estava de volta ao seu lar na floresta, envolta pela segurança das árvores e pela tranquilidade da noite. Seus sonhos, embora menos vívidos que a experiência vivida, ainda carregavam ecos daquela jornada fantástica. E assim, no silêncio reconfortante do bosque, a fada descansava, recuperando-se para mais um dia de voo e descobertas."""
 
-#dado.set_scenes(0, cena)
-dado.set_scenes(0, 'cena aquiiaieunffoui')
-print(dado.get_scene(0,1))
+
+logging.basicConfig(
+    filename='BotAutoPy.log',  # Nome do arquivo de log
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
+bot = ZOP(True, False)
+comm = Comandos(bot)
+
+while True:
+
+    new_messages = bot.check_new_messages()
+    if new_messages:
+        msgs = bot.get_messages_in()
+        print(msgs)
+        bot.forward_message(-1, ["Julio Developer", "𝙱𝙸𝚉𝙰𝚁𝚁𝙴 𝙳𝙴𝚂𝚃𝙸𝙽𝚈 – 𝑭𝑰𝑪𝑯𝑨𝑺"])
+        bot.close_chat()

@@ -211,8 +211,7 @@ class Data:
             str(values[5]) + f'*    conversão: ' + str(int(values[5] / 100 * 20)) + ' kg*')
         converted.append(
             str(values[6]) + f'*    conversão: ' + str(int(values[6] / 100 * 10)) + ' m/s*')
-        converted.append(
-            str(values[7]) + f'*    conversão: ' + str(int(values[7] / 150 * 10)) + ' %*')
+        converted.append(str(values[7]) + f'*    conversão: ' + str(int(values[7] / 150 * 10)) + ' %*')
 
         # segue como uma string no formato f'{key_pt_br}: {value}'
         # o join vai pular uma linha a cada string dessa lista

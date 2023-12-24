@@ -14,9 +14,20 @@ O projeto será dividido em duas etapas, a primeira será a criação do chatbot
 
 # Instalação e configuração:
 
-### Este projeto foi feito com base no whatsapp for windows, para o pleno funcionamento dele é preciso de algumas configurações:
+### Este projeto foi feito com base no whatsapp web, para o pleno funcionamento dele é preciso de algumas configurações:
 
-- instalar as bibliotecas (a divulgar)
+- instalar as bibliotecas (a divulgar) Selenium, pyperclip, webdriver-manager
+- Baixar navegador chrome e o webdriver compatíveis, verifique a versão do seu computador e baixe aqui os webdrivers compatíveis:
+[Chrome Driver para versões mais novas](https://googlechromelabs.github.io/chrome-for-testing/#stable)
+[Todas as versões](https://chromedriver.chromium.org/downloads)
+
+Para deixar o Chrome mais rápido e sem animações do whatsapp Abra o Google Chrome.
+Vá para as configurações do Chrome digitando chrome://settings/ na barra de endereços e pressionando Enter.
+Role para baixo e clique em "Avançado".
+Na seção "Acessibilidade", ative a opção "Reduzir movimento".
+
+
+
 
 
 

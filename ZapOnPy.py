@@ -3,11 +3,13 @@ import re
 import time
 import logging
 import pyperclip
+from qr import QR
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common import exceptions
 import time
 from selenium.webdriver.common.keys import Keys
 
@@ -17,6 +19,10 @@ class ZOP:
 
     def __init__(self, save_login=bool, headless=bool) -> None:
         '''Inicializar o webdriver com os dados de login ou não'''
+        # configurando o caminho do chrome_driver
+        driver_path = "./driver/chromedriver.exe"
+        service = webdriver.ChromeService(executable_path=driver_path)
+
         if save_login or headless:
             options = webdriver.ChromeOptions()
             # ao usar linux alterar para 'chromewithlogin/'
@@ -25,12 +31,17 @@ class ZOP:
                 options.add_argument(f"--user-data-dir={userdir}")
             if headless:
                 # Headless dando problema
-                options.add_argument('--headless')  # Executar em modo headless
+                # Executar em modo headless
+                options.add_argument('--headless=new')
                 # Desativar a aceleração de hardware (necessário para o modo headless em algumas plataformas)
                 options.add_argument('--disable-gpu')
-            self.browser = webdriver.Chrome(options=options)
+            self.browser = webdriver.Chrome(options=options, service=service)
         else:
-            self.browser = webdriver.Chrome()
+            # iniciar sem nenhuma configuração
+            self.browser = webdriver.Chrome(service=service)
+
+        # inicializando action Chains
+        self.action = ActionChains(self.browser)
         logging.info('Inicializando o navegador')
         self.bot_init()
 
@@ -43,16 +54,32 @@ class ZOP:
         '''Inicia o bot e espera até que o QR Code seja escaneado'''
         try:
             self.browser.get('https://web.whatsapp.com/')
-            time.sleep(5)
+            time.sleep(7)
+            qrcode_xpath = '//*[@id="app"]/div/div[2]/div[3]/div[1]/div/div/div[2]/div/canvas'
+            qrcode = self.browser.find_element(By.XPATH, qrcode_xpath)
+            qrcode.screenshot('qrcode.png')
+            qr = QR()
+            qr.ler_qrcode_imagem('qrcode.png')
+            time.sleep(2)
             WebDriverWait(self.browser, 10).until(
-                EC.invisibility_of_element_located(
-                    (By.XPATH, '//*[@id="app"]/div/div[2]/div[3]/div[1]/div/div/div[2]/div/canvas'))
+                EC.invisibility_of_element_located((By.XPATH, qrcode_xpath))
             )
             logging.info('QR code lido.')
-            time.sleep(2)
+            time.sleep(7)
 
         except Exception as e:
             logging.error(f"Ocorreu um erro \n{e}")
+
+    def get_messages_in(self):
+        "Essa função pega apenas as mensagens recebidas"
+        elements_message_in = self.find_messages_in()
+        messages = []
+
+        for message in elements_message_in:
+            print(f'texto: {message.text}')
+            messages.append(message.text)
+
+        return messages
 
     def get_last_message(self):
         '''Pega a última mensagem em str e retorna ela, caso der erro, retorna None'''
@@ -60,41 +87,32 @@ class ZOP:
 
         try:
             self.click_on_readmore()
-            # script para pegar ultima mensagem
-            script = """
-                var mensagens = document.querySelectorAll('#main div.copyable-text span[dir="ltr"]');
-                return mensagens.length > 0 ? mensagens[mensagens.length - 1].innerText : null;
-            """
-            last_message = str(self.browser.execute_script(script))
+            time.sleep(0.5)
+            last_message = self.get_messages_in()[-1]
             logging.info(f'Mensagem pega: {last_message}')
             return last_message
+        except exceptions.NoSuchElementException:
+            pass
         except Exception as e:
             logging.error(f"Erro ao obter última mensagem: {e}")
             return None
 
-    def get_all_messages(self):
-        '''Pega uma grande quantidade de mensagens da conversa e retorna uma lista, caso der erro, retorna uma lista vazia'''
+    def get_all_messages(self, scale=10):
+        '''Pega uma grande quantidade de mensagens da conversa e retorna uma lista, caso der erro, retorna uma lista vazia
+        O parametro scale recebe int, por padrão é 10. é quantidade de vezes que vai clicar na tecla HOME,
+        assim pegando mais mensagens
+        '''
         try:
 
             # Apertar home para subir a página e carregar mais mensagens
             chat = self.find_chat()
-            for _ in range(10):
+            for _ in range(scale):
                 chat.send_keys(Keys.HOME)
                 time.sleep(0.5)
 
             self.click_on_readmore()
 
-            # Script para obter todas as mensagens
-            script = """
-                var mensagens = document.querySelectorAll('#main div.copyable-text span[dir="ltr"]');
-                return Array.from(mensagens).map(function(mensagem) {
-                    return mensagem.innerText;
-                });
-            """
-
-            all_messages = self.browser.execute_script(script)
-            # faz um list comprehention para criar uma lista com todas as messagens em formato string
-            all_messages = [str(message)for message in all_messages]
+            all_messages = self.get_messages_in()
 
             logging.info(f'Todas as mensagens pegas: {all_messages}')
 
@@ -108,13 +126,15 @@ class ZOP:
         '''Checa se tem novas mensagens e abre o chat que tem novas mensagens, retorna bool new_message'''
         try:
             new_message = self.find_new_message_icon()
-            if new_message:
+            if new_message is not None:
                 self.find_chat_new_message().click()
                 time.sleep(0.5)
                 logging.info('Novas mensagens foram encontradas')
                 return new_message
             else:
                 time.sleep(1)  # Aguarde um pouco antes de verificar novamente
+        
+        
         except Exception as e:
             logging.error(f"Erro ao encontrar novas mensagens: {e}")
 
@@ -282,31 +302,239 @@ class ZOP:
             print(f'ocorreu um erro: {e}')
             return None
 
-    # Achar elementos web
+    def clean_chat(self):
+        """Essa função irá limpar o chat que estiver aberto no momento."""
+        self.find_chat_menu().click()
+        time.sleep(0.2)
+        self.find_clear_chat_option().click()
+        time.sleep(0.2)
+        self.find_clear_chat_confirm().click()
+        time.sleep(0.2)
+
+    def open_message_menu(self, index=-1):
+        message = self.find_messages_in()[index]
+
+        time.sleep(0.5)
+        menu = self.find_message_menu(message)
+        self.action.move_to_element(menu)
+        menu.click()
+        time.sleep(0.5)
+
+    def forward_message(self, index=-1, to=None):
+        try:
+            if len(to) > 5:
+                raise ValueError(
+                    "O Whatsapp somente encaminha 5 mensagens por vez.")
+            self.open_message_menu(index)
+            self.find_foward_menu().click()
+            time.sleep(0.5)
+            self.find_foward_botton().click()
+
+            for contact in to:
+                pyperclip.copy(contact)
+                self.find_foward_field().send_keys(Keys.CONTROL, 'v')
+                time.sleep(0.2)
+                self.find_foward_field().send_keys(Keys.ENTER)
+
+            time.sleep(0.2)
+            self.find_foward_send_botton().click()
+            time.sleep(0.5)
+            self.close_chat()
+            time.sleep(0.2)
+
+        except ValueError as ve:
+            print(ve)
+
+        except Exception as e:
+            print(f"Ocorreu um outro erro: ", e)
+
+        # Achar elementos web
+
+    def find_messages_in(self):
+        """Deve ser usado quando o chat estiver aberto
+
+        Returns:
+            list [WebElement]: O elemento das mensagens que chegam, ou seja, apenas as mensagens recebidas.
+        """
+        return self.browser.find_elements(By.XPATH, '//div[contains(@class, "message-in")]//span[@class="_11JPr selectable-text copyable-text"]')
 
     def find_message_field(self):
+        """Deve ser usado quando o chat estiver aberto
+
+        Returns:
+            WebElement: O elemento da caixa de mensagem do chat, escrevo minhas mensagens usando
+            pyperclip e send_keys(Keys.CTRL, "v")
+        """
         return self.browser.find_element(By.XPATH, '//*[@id="main"]/footer/div[1]/div/span[2]/div/div[2]/div[1]/div/div[1]/p')
 
     def find_readmore_buttons(self):
+        """Deve ser usado quando o chat estiver aberto
+
+        Returns:
+            list [WebElement]: O elemento do botão leia-mais, ao clicar nele vai estender todas as mensagens
+            que são muito grandes e que são resumidas.
+        """
         return self.browser.find_elements(By.CLASS_NAME, 'read-more-button')
 
     def find_new_message_icon(self):
-        return self.browser.find_elements(By.CLASS_NAME, '_2H6nH')
+        """Pode ser usado a qualquer momento
+
+        Returns:
+            int : O número de novas mensagens no elemento do icone de novas mensagens, 
+            vai sempre pegar das mais antigas para as mais novas.
+
+        Utilização:
+            Use a função self.get_messages() passando a quantidade de novas mensagens multiplicado
+            por -1 como index, assim vai pegar somente as novas mensagens daquele chat se tiver mais de uma
+            podendo responder aos comandos 1 por 1
+
+            OBS: ele encontra vários elementos mas a função [last()] no fim do xpath só retorna o ultimo
+        """
+        new_messages = self.browser.find_element(
+            By.XPATH, "//div[@class='_2H6nH']//span[@aria-label='Não lidas'][last()]")
+        quant = int(new_messages.text)
+        return quant
 
     def find_chat_new_message(self):
-        return self.browser.find_element(By.XPATH, '//*[@id="pane-side"]//div[contains(@class, "_2H6nH")][1]')
+        """Pode ser usado a qualquer momento
+
+        Returns:
+            WebElement: O elemento da conversa que tiver novas mensagens, vai sempre pegar das mais antigas 
+            para as mais novas a fim de evitar tempo de espera muito grande das mensagens mais antigas.
+        Utilização:
+            Use a função .click para clicar no chat com novas mensagens (no último)
+
+        OBS: ele encontra vários elementos mas a função [last()] no fim do xpath só retorna o ultimo
+        """
+
+        return self.browser.find_element(By.XPATH, '//*[@id="pane-side"]//div[contains(@class, "_2H6nH")][last()]')
 
     def find_chat(self):
+        """Deve ser usado para localizar o chat
+
+        Returns:
+            WebElement: O elemento do chat, utilizo para interações com toda a área do chat como mandar teclas 
+            HOME para subir no chat e etc. 
+        """
         return self.browser.find_element(By.XPATH, '//*[@id="main"]/div[2]/div/div[2]/div[3]')
 
     def find_attach_icon(self):
+        """Deve ser usado quando o chat estiver aberto
+
+        Returns:
+            WebElement: O elemento do ícone de clip, ao clicar abre o menu para seleção de attachs
+        """
         return self.browser.find_element(By.CSS_SELECTOR, 'span[data-icon="attach-menu-plus"]')
 
     def find_file_input(self):
+        """Deve ser usado após clicar no icone de clip (attach icon)
+
+        Returns:
+            list [WebElement]: lista de elementos para entrada de arquivos, seja imagens ou documentos.
+
+        Utilize a função .send_keys("caminho do arquivo") para subir o arquivo ao input.
+        Utilização baseado no índice:
+            Indice 0 para enviar documento\n
+            Indice 1 para enviar mídia\n
+            Indice 2 para criação de figurinhas
+        """
         return self.browser.find_elements(By.CSS_SELECTOR, "input[type='file']")
 
     def find_tittle_box(self):
+        """Deve ser usado quando for mandar uma mídia ou documento.
+
+        Returns:
+            WebElement: O elemento de entrada de texto para título da mídia, eu uso o pyperclip
+            para e .send_keys(Keys.CTRL, "v") para escrever, ao fim adicione uma linha como:
+            elemento.send_keys(Keys.ENTER) que ele envia a mídia.
+        """
         return self.browser.find_element(By.XPATH, "//div[@class='to2l77zo gfz4du6o ag5g9lrv fe5nidar kao4egtt']")
 
     def find_contact_box(self):
+        """Pode ser usado a qualquer momento
+
+        Returns:
+            WebElement: O elemento de entrada de texto para pesquisar contatos, eu uso o pyperclip
+            para e .send_keys(Keys.CTRL, "v") para escrever, ao fim adicione uma linha como:
+            elemento.send_keys(Keys.ENTER) que ele abre o chat do contato.
+        """
         return self.browser.find_element(By.CLASS_NAME, "to2l77zo")
+
+    def find_chat_menu(self):
+        """Deve ser usado enquanto o chat estiver aberto.
+
+        Returns:
+            WebElement: O elemento do botão menu do chat
+        """
+        return self.browser.find_element(By.XPATH, "//span[@data-icon='menu' and contains(@class, 'kiiy14zj')]")
+
+    def find_clear_chat_option(self):
+        """Deve ser usado após abrir o menu do chat (find_chat_menu)
+
+        Returns:
+            WebElement: O elemento do botão Limpar conversa
+        """
+        return self.browser.find_element(By.XPATH, "//div[@class='iWqod' and @aria-label='Limpar conversa']")
+
+    def find_clear_chat_confirm(self):
+        """Deve ser usado após selecionar a opção de limpar conversa
+
+        Returns:
+            WebElement: O elemento do botão Limpar conversa
+        """
+        return self.browser.find_element(By.XPATH, "//div[contains(@class, 'tvf2evcx') and contains(@class, 'm0h2a7mj') and contains(@class, 'lb5m6g5c') and contains(@class, 'j7l1k36l') and contains(@class, 'ktfrpxia') and contains(@class, 'nu7pwgvd') and contains(@class, 'p357zi0d') and contains(@class, 'dnb887gk') and contains(@class, 'gjuq5ydh') and contains(@class, 'i2cterl7') and contains(@class, 'i6vnu1w3') and contains(@class, 'qjslfuze') and contains(@class, 'ac2vgrno') and contains(@class, 'sap93d0t') and contains(@class, 'gndfcl4n')]")
+
+    def find_message_menu(self, message):
+        """Deve ser usado enquanto o chat estiver aberto e o mouse precisa passar por cima da mensagem
+        para que abra o menu
+
+        Args:
+            message (WebElement): O elemento web da mensagem para que o menu seja aberto naquela mensagem em específico
+
+        Returns:
+            WebElement: O elemento do botão de envio da aba de encaminhar
+        """
+        self.action.move_to_element(message)
+        message.click()
+        return self.browser.find_element(By.XPATH, '//span[@data-icon="down-context"]')
+
+    def find_foward_menu(self):
+        """Deve ser usado após abrir o menu de mensagem (find_message_menu)
+
+        Returns:
+            WebElement: O elemento de seleção para encaminhar mensagens
+        """
+        return self.browser.find_element(By.XPATH, "//div[@class='iWqod _1MZM5 _2BNs3' and @role='button' and @aria-label='Encaminhar']")
+
+    def find_foward_botton(self):
+        """Deve ser usado após selecionar a mensagem
+
+        Returns:
+            WebElement: O elemento com o botão de encaminhar na área de seleção de mensagens
+        """
+        return self.browser.find_element(By.XPATH, '//button[@title="Encaminhar" and @type="button"]')
+
+    def find_foward_field(self):
+        """Deve ser usado após clicar no ícone de encaminhar
+
+        Returns:
+            WebElement: O elemento para escrever e procurar os contatos ao encaminhar, eu uso o pyperclip
+            para e .send_keys(Keys.CTRL, "v") para escrever, ao fim adicione uma linha como:
+            elemento.send_keys(Keys.ENTER) que ele seleciona o contato o qual vai encaminhar
+
+        """
+        return self.browser.find_element(By.XPATH, '//p[@class="selectable-text copyable-text iq0m558w g0rxnol2"]')
+
+    def find_foward_send_botton(self):
+        """Deve ser usado após selecionar os contatos de envio
+
+        Returns:
+            WebElement: O elemento do botão de envio da aba de encaminhar
+        """
+        return self.browser.find_element(By.XPATH, "//div[contains(@class, 'lhggkp7q') and contains(@class, 'j2mzdvlq') and contains(@class, 'axi1ht8l') and contains(@class, 'mrtez2t4')]//span[@aria-label='Enviar']")
+
+
+# fazer depois
+# relogios = self.browser.find_elements(
+#            '//div[contains(@class, "message-in")]//span[@class="l7jjieqr" and text()="18:20"]')
+#
