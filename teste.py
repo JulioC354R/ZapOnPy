@@ -1,3 +1,6 @@
+from options import msg_options
+from options import field_options
+from options import msg_menu_options
 from ZapOnPy import ZOP
 import json
 import time
@@ -147,6 +150,18 @@ while True:
     new_messages = bot.check_new_messages()
     if new_messages:
         msgs = bot.get_messages_in()
-        print(msgs)
-        bot.forward_message(-1, ["Julio Developer", "𝙱𝙸𝚉𝙰𝚁𝚁𝙴 𝙳𝙴𝚂𝚃𝙸𝙽𝚈 – 𝑭𝑰𝑪𝑯𝑨𝑺"])
-        bot.close_chat()
+        try:
+            message_element = bot.find_messages(msg_options.IN)[-1]
+            print(message_element)
+            print(message_element.text)
+            bot.open_message_menu(message_element)
+            bot.click_message_option(msg_menu_options.FAVORITE)
+            campo = bot.find_field(field_options.MESSAGE)
+            time.sleep(1)
+            campo.send_keys("Favoritado", Keys.ENTER)
+        except Exception as e:
+            print("erro: ", e)
+
+        time.sleep(5)
+        # bot.forward_message(-1, ["Julio Developer", "𝙱𝙸𝚉𝙰𝚁𝚁𝙴 𝙳𝙴𝚂𝚃𝙸𝙽𝚈 – 𝑭𝑰𝑪𝑯𝑨𝑺"])
+        # bot.close_chat()

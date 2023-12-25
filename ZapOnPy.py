@@ -12,6 +12,10 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common import exceptions
 import time
 from selenium.webdriver.common.keys import Keys
+from options import msg_options
+from options import field_options
+from options import buttons_options
+from options import msg_menu_options
 
 
 class ZOP:
@@ -72,7 +76,7 @@ class ZOP:
 
     def get_messages_in(self):
         "Essa função pega apenas as mensagens recebidas"
-        elements_message_in = self.find_messages_in()
+        elements_message_in = self.find_messages(msg_options.IN)
         messages = []
 
         for message in elements_message_in:
@@ -133,8 +137,7 @@ class ZOP:
                 return new_message
             else:
                 time.sleep(1)  # Aguarde um pouco antes de verificar novamente
-        
-        
+
         except Exception as e:
             logging.error(f"Erro ao encontrar novas mensagens: {e}")
 
@@ -311,15 +314,6 @@ class ZOP:
         self.find_clear_chat_confirm().click()
         time.sleep(0.2)
 
-    def open_message_menu(self, index=-1):
-        message = self.find_messages_in()[index]
-
-        time.sleep(0.5)
-        menu = self.find_message_menu(message)
-        self.action.move_to_element(menu)
-        menu.click()
-        time.sleep(0.5)
-
     def forward_message(self, index=-1, to=None):
         try:
             if len(to) > 5:
@@ -348,33 +342,131 @@ class ZOP:
         except Exception as e:
             print(f"Ocorreu um outro erro: ", e)
 
+    def react_a_message(self, index=-1):
+        self.open_message_menu(index)
+
         # Achar elementos web
 
-    def find_messages_in(self):
+    def find_message_complete_element(self, index=-1):
         """Deve ser usado quando o chat estiver aberto
 
         Returns:
-            list [WebElement]: O elemento das mensagens que chegam, ou seja, apenas as mensagens recebidas.
+            WebElement: O elemento completo da mensagem, baseado no index fornecido, (as ultimas são as mais recentes),
+            no elemento completo temos acesso as reações da mensagem
         """
-        return self.browser.find_elements(By.XPATH, '//div[contains(@class, "message-in")]//span[@class="_11JPr selectable-text copyable-text"]')
+        element = self.browser.find_elements(
+            By.XPATH, "//div[contains(@class, 'message-in') or contains(@class, 'message-out')][contains(@class, 'focusable-list-item')]")
+        return element[index]
 
-    def find_message_field(self):
+    def find_reaction_in_a_message(self, message_Welement):
+        return message_Welement.find_element(By.XPATH, ".//*[contains(@class, 'dhq51u3o')]")
+
+    def find_messages(self, option=str):
         """Deve ser usado quando o chat estiver aberto
 
         Returns:
-            WebElement: O elemento da caixa de mensagem do chat, escrevo minhas mensagens usando
-            pyperclip e send_keys(Keys.CTRL, "v")
-        """
-        return self.browser.find_element(By.XPATH, '//*[@id="main"]/footer/div[1]/div/span[2]/div/div[2]/div[1]/div/div[1]/p')
+            list [WebElement]: O elemento das mensagens com base no modo escolhido.
 
-    def find_readmore_buttons(self):
-        """Deve ser usado quando o chat estiver aberto
+        Opções:
+
+            IN  = retorna apenas os elementos das mensagens recebidas. \n
+            OUT = retorna apenas os elementos das mensagens enviadas.  \n
+            ALL = retorna os elementos de todas as mensagens do chat.  \n
+        """
+        if option == msg_options.IN:
+            return self.browser.find_elements(By.XPATH, '//div[contains(@class, "message-in")]//span[@class="_11JPr selectable-text copyable-text"]')
+        if option == msg_options.OUT:
+            return self.browser.find_elements(By.XPATH, "//div[contains(@class, 'message-out') and contains(@class, 'focusable-list-item') and contains(@class, '_1AOLJ') and contains(@class, '_2UtSC') and contains(@class, '_1jHIY')]")
+        if option == msg_options.ALL:
+            return self.browser.find_elements(By.XPATH, "//div[contains(@class, 'message-in') or contains(@class, 'message-out')][contains(@class, 'focusable-list-item') and contains(@class, '_1AOLJ') and contains(@class, '_2UtSC') and contains(@class, '_1jHIY')]")
+        else:
+            raise Exception(
+                "Ao utilizar o find_messages() é preciso um argumento válido. Utilize msg_options. e selecione o argumento")
+
+    def find_field(self, option=str):
+        if option == field_options.MESSAGE:
+            return self.browser.find_element(By.XPATH, '//*[@id="main"]/footer/div[1]/div/span[2]/div/div[2]/div[1]/div/div[1]/p')
+        if option == field_options.TITTLE:
+            return self.browser.find_element(By.XPATH, "//div[@class='to2l77zo gfz4du6o ag5g9lrv fe5nidar kao4egtt']")
+        if option == field_options.FOWARD:
+            return self.browser.find_element(By.XPATH, '//p[@class="selectable-text copyable-text iq0m558w g0rxnol2"]')
+        if option == field_options.CONTACT:
+            return self.browser.find_element(By.CLASS_NAME, "to2l77zo")
+        if option == field_options.REACTION:
+            pass  # AINDA PRECISO FAZER!!!!!!!!!!!!!
+            # AINDA PRECISO FAZER!!!!!!!!!!!!!
+            # AINDA PRECISO FAZER!!!!!!!!!!!!!
+            # AINDA PRECISO FAZER!!!!!!!!!!!!!
+            # AINDA PRECISO FAZER!!!!!!!!!!!!!
+            # AINDA PRECISO FAZER!!!!!!!!!!!!!
+            # AINDA PRECISO FAZER!!!!!!!!!!!!!
+            # AINDA PRECISO FAZER!!!!!!!!!!!!!
+        else:
+            raise Exception(
+                "Ao utilizar o find_fields() é preciso um argumento válido. Utilize field_options. e selecione o argumento")
+
+    def find_button(self, option=str):
+
+        if option == buttons_options.READMORE:
+            return self.browser.find_elements(By.CLASS_NAME, 'read-more-button')
+
+        if option == buttons_options.ATTACH:
+            return self.browser.find_element(By.CSS_SELECTOR, 'span[data-icon="attach-menu-plus"]')
+
+        if option == buttons_options.CHAT_MENU:
+            return self.browser.find_element(By.XPATH, "//span[@data-icon='menu' and contains(@class, 'kiiy14zj')]")
+
+        if option == buttons_options.CLEAR_CHAT:
+            return self.browser.find_element(By.XPATH, "//div[@class='iWqod' and @aria-label='Limpar conversa']")
+
+        if option == buttons_options.CLEAR_CONFIRM:
+            return self.browser.find_element(By.XPATH, "//div[contains(@class, 'tvf2evcx') and contains(@class, 'm0h2a7mj') and contains(@class, 'lb5m6g5c') and contains(@class, 'j7l1k36l') and contains(@class, 'ktfrpxia') and contains(@class, 'nu7pwgvd') and contains(@class, 'p357zi0d') and contains(@class, 'dnb887gk') and contains(@class, 'gjuq5ydh') and contains(@class, 'i2cterl7') and contains(@class, 'i6vnu1w3') and contains(@class, 'qjslfuze') and contains(@class, 'ac2vgrno') and contains(@class, 'sap93d0t') and contains(@class, 'gndfcl4n')]")
+
+        if option == buttons_options.FOWARD:
+            return self.browser.find_element(By.XPATH, '//button[@title="Encaminhar" and @type="button"]')
+
+        if option == buttons_options.FOWARD_CONFIRM:
+            return self.browser.find_element(By.XPATH, "//div[contains(@class, 'lhggkp7q') and contains(@class, 'j2mzdvlq') and contains(@class, 'axi1ht8l') and contains(@class, 'mrtez2t4')]//span[@aria-label='Enviar']")
+        else:
+            raise Exception(
+                "Ao utilizar o find_button() é preciso um argumento válido. Utilize buttons_options. e selecione o argumento")
+
+    def open_message_menu(self, message):
+        """Deve ser usado enquanto o chat estiver aberto e o mouse precisa passar por cima da mensagem
+        para que abra o menu
+
+        Args:
+            message (WebElement): O elemento web da mensagem para que o menu seja aberto naquela mensagem em específico
 
         Returns:
-            list [WebElement]: O elemento do botão leia-mais, ao clicar nele vai estender todas as mensagens
-            que são muito grandes e que são resumidas.
+            WebElement: O elemento do botão para abrir o menu da mensagem
         """
-        return self.browser.find_elements(By.CLASS_NAME, 'read-more-button')
+        self.action.move_to_element(message).perform()
+        time.sleep(0.2)
+        self.browser.find_element(
+            By.XPATH, '//span[@data-icon="down-context"]').click()
+
+    def click_message_option(self, option_selected=str):
+        """Encontra as opções do menu de mensagem: Pega a lista de elementos de opções e clica no correspondente
+
+        Args:
+            option_selected (_type_, optional): _description_. Defaults to str.
+
+        Raises:
+            Exception: _description_
+
+        """
+
+        if option_selected in msg_menu_options.LIST_MENU_OPTIONS:
+            xpath = f"// *[contains(@class, 'iWqod') and contains(@class, '_1MZM5') and contains(@class, '_2BNs3') and @role='button' and @aria-label='{option_selected}']"
+            element = self.browser.find_element(By.XPATH, xpath)
+            print(f"Elemento encontrado: {element}")
+            time.sleep(0.2)
+            element.click()
+
+        else:
+            raise Exception(
+                f"A opção '{option_selected}' não é válida. Utilize msg_menu_options e selecione um argumento válido.")
 
     def find_new_message_icon(self):
         """Pode ser usado a qualquer momento
@@ -418,13 +510,10 @@ class ZOP:
         """
         return self.browser.find_element(By.XPATH, '//*[@id="main"]/div[2]/div/div[2]/div[3]')
 
-    def find_attach_icon(self):
-        """Deve ser usado quando o chat estiver aberto
-
-        Returns:
-            WebElement: O elemento do ícone de clip, ao clicar abre o menu para seleção de attachs
-        """
-        return self.browser.find_element(By.CSS_SELECTOR, 'span[data-icon="attach-menu-plus"]')
+    #
+    #
+    # Fazer options para cada tipo de input.
+    # #
 
     def find_file_input(self):
         """Deve ser usado após clicar no icone de clip (attach icon)
@@ -439,99 +528,6 @@ class ZOP:
             Indice 2 para criação de figurinhas
         """
         return self.browser.find_elements(By.CSS_SELECTOR, "input[type='file']")
-
-    def find_tittle_box(self):
-        """Deve ser usado quando for mandar uma mídia ou documento.
-
-        Returns:
-            WebElement: O elemento de entrada de texto para título da mídia, eu uso o pyperclip
-            para e .send_keys(Keys.CTRL, "v") para escrever, ao fim adicione uma linha como:
-            elemento.send_keys(Keys.ENTER) que ele envia a mídia.
-        """
-        return self.browser.find_element(By.XPATH, "//div[@class='to2l77zo gfz4du6o ag5g9lrv fe5nidar kao4egtt']")
-
-    def find_contact_box(self):
-        """Pode ser usado a qualquer momento
-
-        Returns:
-            WebElement: O elemento de entrada de texto para pesquisar contatos, eu uso o pyperclip
-            para e .send_keys(Keys.CTRL, "v") para escrever, ao fim adicione uma linha como:
-            elemento.send_keys(Keys.ENTER) que ele abre o chat do contato.
-        """
-        return self.browser.find_element(By.CLASS_NAME, "to2l77zo")
-
-    def find_chat_menu(self):
-        """Deve ser usado enquanto o chat estiver aberto.
-
-        Returns:
-            WebElement: O elemento do botão menu do chat
-        """
-        return self.browser.find_element(By.XPATH, "//span[@data-icon='menu' and contains(@class, 'kiiy14zj')]")
-
-    def find_clear_chat_option(self):
-        """Deve ser usado após abrir o menu do chat (find_chat_menu)
-
-        Returns:
-            WebElement: O elemento do botão Limpar conversa
-        """
-        return self.browser.find_element(By.XPATH, "//div[@class='iWqod' and @aria-label='Limpar conversa']")
-
-    def find_clear_chat_confirm(self):
-        """Deve ser usado após selecionar a opção de limpar conversa
-
-        Returns:
-            WebElement: O elemento do botão Limpar conversa
-        """
-        return self.browser.find_element(By.XPATH, "//div[contains(@class, 'tvf2evcx') and contains(@class, 'm0h2a7mj') and contains(@class, 'lb5m6g5c') and contains(@class, 'j7l1k36l') and contains(@class, 'ktfrpxia') and contains(@class, 'nu7pwgvd') and contains(@class, 'p357zi0d') and contains(@class, 'dnb887gk') and contains(@class, 'gjuq5ydh') and contains(@class, 'i2cterl7') and contains(@class, 'i6vnu1w3') and contains(@class, 'qjslfuze') and contains(@class, 'ac2vgrno') and contains(@class, 'sap93d0t') and contains(@class, 'gndfcl4n')]")
-
-    def find_message_menu(self, message):
-        """Deve ser usado enquanto o chat estiver aberto e o mouse precisa passar por cima da mensagem
-        para que abra o menu
-
-        Args:
-            message (WebElement): O elemento web da mensagem para que o menu seja aberto naquela mensagem em específico
-
-        Returns:
-            WebElement: O elemento do botão de envio da aba de encaminhar
-        """
-        self.action.move_to_element(message)
-        message.click()
-        return self.browser.find_element(By.XPATH, '//span[@data-icon="down-context"]')
-
-    def find_foward_menu(self):
-        """Deve ser usado após abrir o menu de mensagem (find_message_menu)
-
-        Returns:
-            WebElement: O elemento de seleção para encaminhar mensagens
-        """
-        return self.browser.find_element(By.XPATH, "//div[@class='iWqod _1MZM5 _2BNs3' and @role='button' and @aria-label='Encaminhar']")
-
-    def find_foward_botton(self):
-        """Deve ser usado após selecionar a mensagem
-
-        Returns:
-            WebElement: O elemento com o botão de encaminhar na área de seleção de mensagens
-        """
-        return self.browser.find_element(By.XPATH, '//button[@title="Encaminhar" and @type="button"]')
-
-    def find_foward_field(self):
-        """Deve ser usado após clicar no ícone de encaminhar
-
-        Returns:
-            WebElement: O elemento para escrever e procurar os contatos ao encaminhar, eu uso o pyperclip
-            para e .send_keys(Keys.CTRL, "v") para escrever, ao fim adicione uma linha como:
-            elemento.send_keys(Keys.ENTER) que ele seleciona o contato o qual vai encaminhar
-
-        """
-        return self.browser.find_element(By.XPATH, '//p[@class="selectable-text copyable-text iq0m558w g0rxnol2"]')
-
-    def find_foward_send_botton(self):
-        """Deve ser usado após selecionar os contatos de envio
-
-        Returns:
-            WebElement: O elemento do botão de envio da aba de encaminhar
-        """
-        return self.browser.find_element(By.XPATH, "//div[contains(@class, 'lhggkp7q') and contains(@class, 'j2mzdvlq') and contains(@class, 'axi1ht8l') and contains(@class, 'mrtez2t4')]//span[@aria-label='Enviar']")
 
 
 # fazer depois
