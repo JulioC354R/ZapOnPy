@@ -1,3 +1,4 @@
-from options import msg_menu_options
-
-print(hasattr(msg_menu_options, "AWSER"))
+def teste(string=str):
+    print(string)
+    
+teste(0)

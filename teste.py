@@ -1,6 +1,4 @@
-from options import msg_options
-from options import field_options
-from options import msg_menu_options
+from options import *
 from ZapOnPy import ZOP
 import json
 import time
@@ -149,18 +147,22 @@ while True:
 
     new_messages = bot.check_new_messages()
     if new_messages:
-        msgs = bot.get_messages_in()
-        try:
-            message_element = bot.find_messages(msg_options.IN)[-1]
-            print(message_element)
-            print(message_element.text)
-            bot.open_message_menu(message_element)
-            bot.click_message_option(msg_menu_options.FAVORITE)
-            campo = bot.find_field(field_options.MESSAGE)
-            time.sleep(1)
-            campo.send_keys("Favoritado", Keys.ENTER)
-        except Exception as e:
-            print("erro: ", e)
+
+        message_element_list = bot.find_messages(Msg_options.IN)
+        for message_element in message_element_list:
+            if message_element.text == "!apresentar":
+                print(message_element.text)
+                bot.click_message_option(
+                    message_element, Msg_menu_options.REPLY)
+                txt = '''"*Yare Yare Daze... Então, você deseja adentrar no RPG de JoJo, não é? Acha que está preparado para enfrentar os desafios que este universo bizarro reserva? Prepare-se, pois aqui não é lugar para os fracos. Stands poderosos, inimigos astutos e mistérios intrigantes aguardam aqueles que ousam ingressar. Se julga capaz de lidar com a intensidade das batalhas, a imprevisibilidade dos Stands e a loucura característica deste mundo, então, caro aventureiro, desafio-o a tornar-se um Stand User. Escolha com sabedoria, planeje estrategicamente e, é claro, esteja pronto para entoar o seu melhor ORA ORA ORA quando a situação exigir. Assim, pergunto a você: aceitará o desafio de se tornar parte desta jornada bizarra? Se a resposta for afirmativa, prepare-se para uma experiência única. Boa sorte, meu camarada. Certamente, ela será necessária.* "'''
+                bot.send_message_on_chat(txt)
+                time.sleep(1)
+
+        bot.find_button(Buttons_options.CHAT_MENU)
+        bot.close_chat()
+        # campo = bot.find_field(Field_options.MESSAGE)
+        # time.sleep(1)
+        # campo.send_keys("Favoritado", Keys.ENTER)
 
         time.sleep(5)
         # bot.forward_message(-1, ["Julio Developer", "𝙱𝙸𝚉𝙰𝚁𝚁𝙴 𝙳𝙴𝚂𝚃𝙸𝙽𝚈 – 𝑭𝑰𝑪𝑯𝑨𝑺"])

@@ -7,13 +7,36 @@ chamda By que tem as opções de procura por elementos, decidi fazer algo pareci
 """
 
 
-class msg_options:
+#
+#
+#
+#
+# Lembrar de deixar a primeira letra das classes Maiúsculas
+#
+#
+#
+#
+# #
+
+class Msg_options:
     IN = "in"
+    """Retorna apenas as mensagens recebidas"""
     OUT = "out"
+    """Retorna apenas as mensagens enviadas"""
     ALL = "all"
+    """Retorna todas as mensagens"""
 
 
-class field_options:
+class Input_options:
+
+    DOCUMENT = 0
+
+    MIDIA = 1
+
+    STICKER = 2
+
+
+class Field_options:
     """Campos de inserção de texto
     """
     MESSAGE = "message"
@@ -33,7 +56,7 @@ class field_options:
     """
 
 
-class buttons_options:
+class Buttons_options:
     READMORE = "readmore"
     """Botão leia mais, clique para estender as mensagens muito longas
     """
@@ -57,14 +80,17 @@ class buttons_options:
     """Botão para confirmar o encaminhamento de mensagens, é usado após usar o field_foward para selecionar os contatos
     para encaminhar as mensagens.
     """
+    MESSAGE_MENU = "message_menu"
+    """Botão para abrir o menu da mensagem, ele aparece ao mover o mouse sobre a mensagem.
+    """
 
 
-class msg_menu_options:
+class Msg_menu_options:
 
     MSG_DATA = "Dados da mensagem"
     """Seleciona a opção DADOS DA MENSAGEM
     Deve ser usado após abrir o menu de mensagem (find_message_menu)"""
-    AWSER = "Responder"
+    REPLY = "Responder"
     """Seleciona a opção RESPONDER
     Deve ser usado após abrir o menu de mensagem (find_message_menu)"""
     REACT = "Reagir"
@@ -86,9 +112,9 @@ class msg_menu_options:
     """Seleciona a opção EDITAR
     Deve ser usado após abrir o menu de mensagem (find_message_menu)"""
 
-    LIST_MENU_OPTIONS = [MSG_DATA, AWSER, REACT,
+    LIST_MENU_OPTIONS = [MSG_DATA, REPLY, REACT,
                          FOWARD, FIX, FAVORITE, DELETE, EDIT]
 
 
-class reactions_options:
+class Reactions_options:
     pass
