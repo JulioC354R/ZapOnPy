@@ -150,12 +150,14 @@ while True:
 
         message_element_list = bot.find_messages(Msg_options.IN)
         for message_element in message_element_list:
-            if message_element.text == "!apresentar":
+            if "!apresentar" in message_element.text:
                 print(message_element.text)
-                bot.click_message_option(
-                    message_element, Msg_menu_options.REPLY)
-                txt = '''"*Yare Yare Daze... Então, você deseja adentrar no RPG de JoJo, não é? Acha que está preparado para enfrentar os desafios que este universo bizarro reserva? Prepare-se, pois aqui não é lugar para os fracos. Stands poderosos, inimigos astutos e mistérios intrigantes aguardam aqueles que ousam ingressar. Se julga capaz de lidar com a intensidade das batalhas, a imprevisibilidade dos Stands e a loucura característica deste mundo, então, caro aventureiro, desafio-o a tornar-se um Stand User. Escolha com sabedoria, planeje estrategicamente e, é claro, esteja pronto para entoar o seu melhor ORA ORA ORA quando a situação exigir. Assim, pergunto a você: aceitará o desafio de se tornar parte desta jornada bizarra? Se a resposta for afirmativa, prepare-se para uma experiência única. Boa sorte, meu camarada. Certamente, ela será necessária.* "'''
-                bot.send_message_on_chat(txt)
+                # bot.click_message_option(
+                # message_element, Msg_menu_options.REPLY)
+                # txt = '''Eu irei reagir a essa mensagem.'''
+                # bot.send_message_on_chat(txt)
+                complete = bot.find_message_complete_element(message_element)
+                bot.react_a_message(complete, React_options.LIKE)
                 time.sleep(1)
 
         bot.find_button(Buttons_options.CHAT_MENU)

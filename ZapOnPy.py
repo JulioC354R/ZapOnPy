@@ -17,6 +17,7 @@ from options import *
 #
 # APRENDER SOBRE DECORATORS E USAR ESSA FUNÇÃO PARA DAR LOG AO EXECUTAR CADA UMA DAS MINHAS FUNÇÕES.
 #
+#
 # #
 
 """ 
@@ -35,11 +36,8 @@ def log_execution(func):
 class ZOP:
     """Essa classe é responsável pelas interações diretas do selenium com o whatsapp-web, inclui funções de interação com mensagens, fazer o login, pegar números e etc."""
 
-    def __init__(self, save_login=bool, headless=bool) -> None:
-
-        # self.msg_options = Msg_menu_options
-
-        # Desativação do logging do Selenium
+    def __init__(self, save_login: bool, headless: bool) -> None:
+        # Desativa logging do Selenium
         logging.getLogger('selenium').propagate = False
 
         '''Inicializar o webdriver com os dados de login ou não'''
@@ -63,32 +61,45 @@ class ZOP:
             # iniciar sem nenhuma configuração
             self.browser = webdriver.Chrome(service=service)
 
-        # inicializando action Chains
+        # inicializando action Chains e o WebElements
         self.action = ActionChains(self.browser)
+        save_login
+        self.login(save_login)
         logging.info('Inicializando o navegador')
-        self.bot_init()
 
-    def bot_init(self):
-
-        # fazer condicional para não  procurar o qrcode no modo Headless.
-        '''Inicia o bot e espera até que o QR Code seja escaneado'''
+    def login(self, save_login):
         try:
             self.browser.get('https://web.whatsapp.com/')
-            time.sleep(7)
-            qrcode_xpath = '//*[@id="app"]/div/div[2]/div[3]/div[1]/div/div/div[2]/div/canvas'
-            qrcode = self.browser.find_element(By.XPATH, qrcode_xpath)
-            qrcode.screenshot('qrcode.png')
-            qr = QR()
-            qr.ler_qrcode_imagem('qrcode.png')
-            time.sleep(2)
-            WebDriverWait(self.browser, 10).until(
-                EC.invisibility_of_element_located((By.XPATH, qrcode_xpath))
-            )
-            logging.info('QR code lido.')
-            time.sleep(7)
+
+            if not save_login:
+                qrcode_xpath = '//*[@id="app"]/div/div[2]/div[3]/div[1]/div/div/div[2]/div/canvas'
+
+                for _ in range(5):
+                    try:
+                        qrcode = WebDriverWait(self.browser, 10).until(
+                            EC.visibility_of_element_located(
+                                (By.XPATH, qrcode_xpath))
+                        )
+                        qrcode.screenshot('qrcode.png')
+                        qr = QR()
+                        qr.ler_qrcode_imagem('qrcode.png')
+                        time.sleep(7)
+                    except NoSuchElementException:
+                        logging.info("Qr code não encontrado.")
+                        break
+            else:
+                wait_time = 60
+                try:
+                    WebDriverWait(self.browser, wait_time).until(
+                        EC.visibility_of_element_located(
+                            (By.CLASS_NAME, '_3WByx'))
+                    )
+                    logging.info('Whatsapp aberto, sucesso no login.')
+                except Exception as e:
+                    logging.error(f"Erro ao abrir o Whatsapp \n{e}")
 
         except Exception as e:
-            logging.error(f"Ocorreu um erro \n{e}")
+            logging.error(f"Ocorreu um erro: \n{e}")
 
     def close_browser(self):
         if self.browser is not None:
@@ -121,9 +132,11 @@ class ZOP:
             self.browser.find_element(
                 By.XPATH, '//*[@id="pane-side"]//div[contains(@class, "_2H6nH")][last()]').click()
 
+            logging.info(
+                f"Foram encontradas novas mensagens: {number_of_new_messages}")
             return number_of_new_messages
         except (NoSuchElementException, TimeoutException):
-            logging.INFO("Não foram encontradas novas mensagens")
+            logging.info("Não foram encontradas novas mensagens")
             return 0
 
     def get_messages(self, option=Msg_options.ALL):
@@ -149,7 +162,7 @@ class ZOP:
             messages.append(message.text)
         return messages
 
-    def get_last_message(self, option):
+    def get_last_message(self, option: str):
         '''Pega a última mensagem em str e retorna ela, caso der erro, retorna None'''
         # Localiza todos os botões "Leia mais"
 
@@ -182,17 +195,15 @@ class ZOP:
                 time.sleep(0.2)
 
             self.click_on_readmore()
-
             logging.info(f'Função executada:')
 
         except Exception as e:
             logging.error(f"Erro ao obter todas as mensagens: {str(e)}")
 
-    def send_message_on_chat(self, text=str, get_out=True):
+    def send_message_on_chat(self, text: str, get_out=True):
         '''Envia uma mensagem quando o chat tá aberto, o get_out é para sair do chat ao enviar a mensagem'''
         self.false_typing(1.5)
         time.sleep(0.5)
-
         try:
             pyperclip.copy(text)
             time.sleep(0.5)
@@ -211,7 +222,7 @@ class ZOP:
     #
     # Fazer false_typing pegar um tempo aleatório a enviar, para que não seja reconhecido como bot.
     # #
-    def false_typing(self, wait_seconds=float):
+    def false_typing(self, wait_seconds: float):
         '''Finge estar digitando pelo tempo de espera passado.
         Parâmetros:
         \nwait_seconds = float -> tempo de espera'''
@@ -224,10 +235,44 @@ class ZOP:
         except Exception as e:
             logging.error(f'Ocorreu um erro: {e}')
 
-    def search_contact(self, contact=str):
+    def send_file_in_input(self, option: int, file_path: str, tittle=""):
+        """Envia o arquivo ao input especificado, inclui o click no attach icon.
+
+        Args:
+            file_path (str): Caminho do arquivo a ser enviado nos inputs. Defaults to str.
+            tittle (str): String a ser colocada no título da mídia. Defaults to " ".
+
+        Usage:
+            ::
+
+                from options import *
+                zop.send_file_in_input(Input_options.DOCUMENT)
+
+        """
+        self.find_button(Buttons_options.ATTACH).click()
+        # obtendo o caminho real do arquivo
+        file_path = os.path.abspath(file_path)
+        pyperclip.copy(tittle)
+        files_input = self.browser.find_elements(
+            By.CSS_SELECTOR, "input[type='file']")
+        files_input[option].send_keys(file_path)  # enviando arquivo pelo input
+        time.sleep(0.5)
+        # apenas procurar o título nessas duas condições
+        if option == Input_options.DOCUMENT or Input_options.MIDIA:
+            tittle_field = self.find_field(Field_options.TITTLE)
+            tittle_field.send_keys(Keys.CONTROL, "v")
+            time.sleep(0.5)
+            tittle_field.send_keys(Keys.ENTER)
+
+        list_options = ["DOCUMENT", "MIDIA", "STICKER"]
+        logging.info(
+            f"Documento enviado como {list_options[option]}: {file_path}")
+
+    def search_contact(self, contact: str):
         '''procura o contato e entra na conversa'''
         try:
-            self.find_contact_box().send_keys(contact, Keys.ENTER)
+            self.find_field(Field_options.CONTACT).send_keys(
+                contact, Keys.ENTER)
         except Exception as e:
             logging.error(f'Ocorreu um erro: {e}')
 
@@ -238,7 +283,6 @@ class ZOP:
             botton.click()
 
     def close_chat(self):
-
         try:
             self.find_field(Field_options.MESSAGE).send_keys(Keys.ESCAPE)
             logging.info('Fechando o chat')
@@ -321,56 +365,112 @@ class ZOP:
 
     def clean_chat(self):
         """Essa função irá limpar o chat que estiver aberto no momento."""
-        self.find_chat_menu().click()
+        self.find_button(Buttons_options.CHAT_MENU).click()
         time.sleep(0.2)
-        self.find_clear_chat_option().click()
+        self.find_button(Buttons_options.CLEAR_CHAT).click()
         time.sleep(0.2)
-        self.find_clear_chat_confirm().click()
+        self.find_button(Buttons_options.CLEAR_CONFIRM).click()
         time.sleep(0.2)
 
-    def forward_message(self, index=-1, to=None):
+    def forward_message(self, index=-1, to=1):
         try:
             if len(to) > 5:
                 raise ValueError(
                     "O Whatsapp somente encaminha 5 mensagens por vez.")
             self.open_message_menu(index)
-            self.find_foward_menu().click()
+            self.find_button(Buttons_options.FOWARD).click()
             time.sleep(0.5)
-            self.find_foward_botton().click()
+            self.find_button(Buttons_options.FOWARD).click()
 
             for contact in to:
                 pyperclip.copy(contact)
-                self.find_foward_field().send_keys(Keys.CONTROL, 'v')
+                self.find_field(Field_options.FOWARD).send_keys(
+                    Keys.CONTROL, 'v')
                 time.sleep(0.2)
-                self.find_foward_field().send_keys(Keys.ENTER)
+                self.find_field(Field_options.FOWARD).send_keys(Keys.ENTER)
 
             time.sleep(0.2)
-            self.find_foward_send_botton().click()
-            time.sleep(0.5)
+            self.find_button(Buttons_options.FOWARD_CONFIRM).click()
+            time.sleep(1)
             self.close_chat()
             time.sleep(0.2)
 
-        except ValueError as ve:
-            print(ve)
+        except ValueError:
+            logging.error(
+                "A quantidade fornecida excedeu o limite de contatos para encaminhar")
 
         except Exception as e:
-            print(f"Ocorreu um outro erro: ", e)
+            logging.error("Ocorreu um erro: ", e)
 
-    def react_a_message(self, index=-1):
-        self.open_message_menu(index)
+    def click_message_option(self, message_element, option_selected=str):
+        """Encontra as opções do menu de mensagem: Pega a lista de elementos de opções e clica no correspondente
+
+        Args:
+            option_selected (_type_, optional): _description_. Defaults to str.
+
+        Raises:
+            Exception: Acontece quando a opção inserida não é válida. Utilize msg_menu_options e selecione um argumento válido.
+
+        """
+        self.open_message_menu(message_element)
+
+        if option_selected in Msg_menu_options.LIST_MENU_OPTIONS:
+            xpath = f"// *[contains(@class, 'iWqod') and contains(@class, '_1MZM5') and contains(@class, '_2BNs3') and @role='button' and @aria-label='{option_selected}']"
+            element = self.browser.find_element(By.XPATH, xpath)
+            print(f"Elemento encontrado: {element}")
+            time.sleep(0.2)
+            element.click()
+
+        else:
+            raise Exception(
+                f"A opção '{option_selected}' não é válida. Utilize msg_menu_options e selecione um argumento válido.")
+
+    def open_message_menu(self, message):
+        """Deve ser usado enquanto o chat estiver aberto e o mouse precisa passar por cima da mensagem
+        para que abra o menu
+
+        Args:
+            message (WebElement): O elemento web da mensagem para que o menu seja aberto naquela mensagem em específico
+
+        """
+        self.action.move_to_element(message).perform()
+        time.sleep(0.2)
+        message_menu_button = self.find_button(Buttons_options.MESSAGE_MENU)
+        self.action.move_to_element(message_menu_button).click().perform()
+
+    def react_a_message(self, message_complete_element, reaction):
+        # self.open_message_menu(message_complete_element)
+        self.click_message_option(
+            message_complete_element, Msg_menu_options.REACT)
+        self.click_on_react_options(reaction)
 
         # Achar elementos web
+        # Achar elementos web
+        # Achar elementos web
+        # Achar elementos web
+        # Achar elementos web
 
-    def find_message_complete_element(self, index=-1):
+    def find_message_complete_element(self, message_element):
         """Deve ser usado quando o chat estiver aberto
 
         Returns:
-            WebElement: O elemento completo da mensagem, baseado no index fornecido, (as ultimas são as mais recentes),
+            WebElement: O elemento completo da mensagem, baseado no elemento da mensagem recebida,
             no elemento completo temos acesso as reações da mensagem
         """
-        element = self.browser.find_elements(
-            By.XPATH, "//div[contains(@class, 'message-in') or contains(@class, 'message-out')][contains(@class, 'focusable-list-item')]")
-        return element[index]
+        complete_element = message_element.find_element(
+            By.XPATH, '../../../..')
+        return complete_element
+
+        # fazer o options
+
+    def find_chat(self):
+        """Deve ser usado para localizar o chat
+
+        Returns:
+            WebElement: O elemento do chat, utilizo para interações com toda a área do chat como mandar teclas 
+            HOME para subir no chat e etc. 
+        """
+        return self.browser.find_element(By.XPATH, '//*[@id="main"]/div[2]/div/div[2]/div[3]')
 
     def find_reaction_in_a_message(self, message_Welement):
         return message_Welement.find_element(By.XPATH, ".//*[contains(@class, 'dhq51u3o')]")
@@ -449,86 +549,12 @@ class ZOP:
             raise Exception(
                 "Ao utilizar o find_button() é preciso um argumento válido. Utilize buttons_options. e selecione o argumento")
 
-    def open_message_menu(self, message):
-        """Deve ser usado enquanto o chat estiver aberto e o mouse precisa passar por cima da mensagem
-        para que abra o menu
-
-        Args:
-            message (WebElement): O elemento web da mensagem para que o menu seja aberto naquela mensagem em específico
-
-        """
-        self.action.move_to_element(message).perform()
-        time.sleep(0.2)
-        message_menu_button = self.find_button(Buttons_options.MESSAGE_MENU)
-        self.action.move_to_element(message_menu_button).click().perform()
-
-    def click_message_option(self, message_element, option_selected=str):
-        """Encontra as opções do menu de mensagem: Pega a lista de elementos de opções e clica no correspondente
-
-        Args:
-            option_selected (_type_, optional): _description_. Defaults to str.
-
-        Raises:
-            Exception: Acontece quando a opção inserida não é válida. Utilize msg_menu_options e selecione um argumento válido.
-
-        """
-        self.open_message_menu(message_element)
-
-        if option_selected in Msg_menu_options.LIST_MENU_OPTIONS:
-            xpath = f"// *[contains(@class, 'iWqod') and contains(@class, '_1MZM5') and contains(@class, '_2BNs3') and @role='button' and @aria-label='{option_selected}']"
-            element = self.browser.find_element(By.XPATH, xpath)
-            print(f"Elemento encontrado: {element}")
-            time.sleep(0.2)
-            element.click()
-
-        else:
-            raise Exception(
-                f"A opção '{option_selected}' não é válida. Utilize msg_menu_options e selecione um argumento válido.")
-
-    # fazer o options
-
-    def find_chat(self):
-        """Deve ser usado para localizar o chat
-
-        Returns:
-            WebElement: O elemento do chat, utilizo para interações com toda a área do chat como mandar teclas 
-            HOME para subir no chat e etc. 
-        """
-        return self.browser.find_element(By.XPATH, '//*[@id="main"]/div[2]/div/div[2]/div[3]')
-
-    def send_file_in_input(self, option=int, file_path=str, tittle=""):
-        """Envia o arquivo ao input especificado, inclui o click no attach icon.
-
-        Args:
-            file_path (str): Caminho do arquivo a ser enviado nos inputs. Defaults to str.
-            tittle (str): String a ser colocada no título da mídia. Defaults to " ".
-
-        Usage:
-            ::
-
-                from options import *
-                zop.send_file_in_input(Input_options.DOCUMENT)
-
-        """
-        self.find_button(Buttons_options.ATTACH).click()
-        # obtendo o caminho real do arquivo
-        file_path = os.path.abspath(file_path)
-        pyperclip.copy(tittle)
-        files_input = self.browser.find_elements(
-            By.CSS_SELECTOR, "input[type='file']")
-        files_input[option].send_keys(file_path)  # enviando arquivo pelo input
+    def click_on_react_options(self, react_option: int):
         time.sleep(0.5)
-        # apenas procurar o título nessas duas condições
-        if option == Input_options.DOCUMENT or Input_options.MIDIA:
-            tittle_field = self.find_field(Field_options.TITTLE)
-            tittle_field.send_keys(Keys.CONTROL, "v")
-            time.sleep(0.5)
-            tittle_field.send_keys(Keys.ENTER)
-
-        list_options = ["DOCUMENT", "MIDIA", "STICKER"]
-        logging.info(
-            f"Documento enviado como {list_options[option]}: {file_path}")
-
+        elements = self.browser.find_elements(
+            By.XPATH, f"//div[contains(@class, 'tvf2evcx')]/div[@role='button']")
+        element = elements[react_option]
+        element.click()
 
 # fazer depois
 # relogios = self.browser.find_elements(

@@ -116,5 +116,22 @@ class Msg_menu_options:
                          FOWARD, FIX, FAVORITE, DELETE, EDIT]
 
 
-class Reactions_options:
-    pass
+class React_options:
+    LIKE = 0
+    """👍"""
+
+    HEART = 1
+    """❤️"""
+    LAUGHTER = 2
+    """😂"""
+
+    SURPRISED = 3
+    """😮"""
+    CRYING = 4
+    """😢"""
+
+    FOLDED_HANDS = 5
+    """🙏"""
+
+    MORE = 6
+    """Search for more reactions"""
