@@ -2,3 +2,5 @@
 .vscode/
 pyvenv.cfg
 BotAutoPy.log
+chromewithlogin/
+.vscode/

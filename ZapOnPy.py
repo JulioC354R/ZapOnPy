@@ -13,7 +13,7 @@ from selenium.common.exceptions import *
 import time
 from selenium.webdriver.common.keys import Keys
 from options import *
-
+import pyvirtualdisplay
 #
 # APRENDER SOBRE DECORATORS E USAR ESSA FUNÇÃO PARA DAR LOG AO EXECUTAR CADA UMA DAS MINHAS FUNÇÕES.
 #
@@ -39,67 +39,68 @@ class ZOP:
     def __init__(self, save_login: bool, headless: bool) -> None:
         # Desativa logging do Selenium
         logging.getLogger('selenium').propagate = False
+        self.action = None
+        self.browser = None
+        self.approved = False
+        self.virtual_display = pyvirtualdisplay.Display(
+            visible=False, size=(640, 480))
+        self.login(save_login, headless)
 
+    def login(self, save_login, headless):
+        qrcode_xpath = '//*[@id="app"]/div/div[2]/div[3]/div[1]/div/div/div[2]/div/canvas'
         '''Inicializar o webdriver com os dados de login ou não'''
-        driver_path = "./driver/chromedriver.exe"
+        driver_path = "./driver/chromedriver"    # no windows colocar chromedriver.exe
         service = webdriver.ChromeService(executable_path=driver_path)
 
         if save_login or headless:
             options = webdriver.ChromeOptions()
             # ao usar linux alterar para 'chromewithlogin/'
-            userdir = 'c:\\chromewithlogin'
+            userdir = os.path.abspath('chromewithlogin/')
             if save_login:
                 options.add_argument(f"--user-data-dir={userdir}")
             if headless:
-                # Headless dando problema
                 # Executar em modo headless
                 options.add_argument('--headless=new')
-                # Desativar a aceleração de hardware (necessário para o modo headless em algumas plataformas)
                 options.add_argument('--disable-gpu')
+                options.add_argument('--window-size=1200x600')
             self.browser = webdriver.Chrome(options=options, service=service)
         else:
             # iniciar sem nenhuma configuração
             self.browser = webdriver.Chrome(service=service)
-
-        # inicializando action Chains e o WebElements
+        # inicializando action Chains
         self.action = ActionChains(self.browser)
-        save_login
-        self.login(save_login)
-        logging.info('Inicializando o navegador')
 
-    def login(self, save_login):
+        self.browser.get('https://web.whatsapp.com/')
+
+        self.qrcode_in_terminal(qrcode_xpath)
+
+        time.sleep(5)
+
+        wait_time = 20
         try:
-            self.browser.get('https://web.whatsapp.com/')
-
-            if not save_login:
-                qrcode_xpath = '//*[@id="app"]/div/div[2]/div[3]/div[1]/div/div/div[2]/div/canvas'
-
-                for _ in range(5):
-                    try:
-                        qrcode = WebDriverWait(self.browser, 10).until(
-                            EC.visibility_of_element_located(
-                                (By.XPATH, qrcode_xpath))
-                        )
-                        qrcode.screenshot('qrcode.png')
-                        qr = QR()
-                        qr.ler_qrcode_imagem('qrcode.png')
-                        time.sleep(7)
-                    except NoSuchElementException:
-                        logging.info("Qr code não encontrado.")
-                        break
-            else:
-                wait_time = 60
-                try:
-                    WebDriverWait(self.browser, wait_time).until(
-                        EC.visibility_of_element_located(
-                            (By.CLASS_NAME, '_3WByx'))
-                    )
-                    logging.info('Whatsapp aberto, sucesso no login.')
-                except Exception as e:
-                    logging.error(f"Erro ao abrir o Whatsapp \n{e}")
-
+            WebDriverWait(self.browser, wait_time).until(
+                EC.visibility_of_element_located(
+                    (By.CLASS_NAME, '_3WByx'))
+            )
+            logging.info('Whatsapp aberto, sucesso no login.')
+            self.approved = True
         except Exception as e:
-            logging.error(f"Ocorreu um erro: \n{e}")
+            logging.error(f"Erro ao abrir o Whatsapp \n{e}")
+
+    def qrcode_in_terminal(self, qrcode_xpath):
+        for _ in range(5):
+            try:
+                qrcode = WebDriverWait(self.browser, 5).until(
+                    EC.visibility_of_element_located(
+                        (By.XPATH, qrcode_xpath))
+                )
+                qrcode.screenshot('qrcode.png')
+                qr = QR()
+                qr.read_qrcode_img('qrcode.png')
+                time.sleep(10)
+            except (NoSuchElementException, TimeoutException):
+                logging.info("Qr code não encontrado.")
+                break
 
     def close_browser(self):
         if self.browser is not None:
@@ -154,10 +155,10 @@ class ZOP:
         Returns:
             _type_: _description_
         """
-        elements_message_in = self.find_messages(option)
+        elements_message = self.find_messages(option)
         messages = []
 
-        for message in elements_message_in:
+        for message in elements_message:
             print(f'texto: {message.text}')
             messages.append(message.text)
         return messages
@@ -205,15 +206,22 @@ class ZOP:
         self.false_typing(1.5)
         time.sleep(0.5)
         try:
+            self.virtual_display.start()
             pyperclip.copy(text)
             time.sleep(0.5)
             message_field = self.find_field(Field_options.MESSAGE)
             message_field.send_keys(Keys.CONTROL, "v")
+            time.sleep(0.2)
+            # edit = self.browser.find_element(
+            # By.XPATH, '//div[@class="_3Uu1_"]//div[@class="g0rxnol2 ln8gz9je lexical-rich-text-input"]//div[@class="to2l77zo gfz4du6o ag5g9lrv bze30y65 kao4egtt"]//span[@class="selectable-text copyable-text"]')
 
+            message_field.send_keys(".")
+            message_field.send_keys(Keys.BACK_SPACE)
             time.sleep(0.5)
             # Pressiona "Enter" para enviar a mensagem
             message_field.send_keys(Keys.ENTER)
             logging.info('Mensagem enviada')
+            self.virtual_display.stop()
         except Exception as e:
             logging.error(f'Ocorreu um erro ao mandar a mensagem {e}')
         if get_out:
@@ -271,8 +279,11 @@ class ZOP:
     def search_contact(self, contact: str):
         '''procura o contato e entra na conversa'''
         try:
-            self.find_field(Field_options.CONTACT).send_keys(
-                contact, Keys.ENTER)
+            contact_field = self.find_field(Field_options.CONTACT)
+            contact_field.send_keys(contact, Keys.ENTER)
+            time.sleep(0.2)
+            contact_field.send_keys(Keys.CONTROL, "a")
+            contact_field.send_keys(Keys.BACKSPACE)
         except Exception as e:
             logging.error(f'Ocorreu um erro: {e}')
 
@@ -284,6 +295,7 @@ class ZOP:
 
     def close_chat(self):
         try:
+            time.sleep(0.2)
             self.find_field(Field_options.MESSAGE).send_keys(Keys.ESCAPE)
             logging.info('Fechando o chat')
         except:
@@ -403,7 +415,7 @@ class ZOP:
             logging.error("Ocorreu um erro: ", e)
 
     def click_message_option(self, message_element, option_selected=str):
-        """Encontra as opções do menu de mensagem: Pega a lista de elementos de opções e clica no correspondente
+        """Abre o menu da mensagem: Pega a lista de elementos de opções e clica no correspondente
 
         Args:
             option_selected (_type_, optional): _description_. Defaults to str.
@@ -412,10 +424,15 @@ class ZOP:
             Exception: Acontece quando a opção inserida não é válida. Utilize msg_menu_options e selecione um argumento válido.
 
         """
-        self.open_message_menu(message_element)
-
         if option_selected in Msg_menu_options.LIST_MENU_OPTIONS:
-            xpath = f"// *[contains(@class, 'iWqod') and contains(@class, '_1MZM5') and contains(@class, '_2BNs3') and @role='button' and @aria-label='{option_selected}']"
+            self.action.move_to_element(message_element).perform()
+            time.sleep(0.2)
+            message_menu_button = self.find_button(
+                Buttons_options.MESSAGE_MENU)
+            self.action.move_to_element(message_menu_button).click().perform()
+
+            xpath = f"// *[contains(@class, 'iWqod') and contains(@class, '_1MZM5') and contains(@class, '_2BNs3') and @role='button' and @aria-label='{
+                option_selected}']"
             element = self.browser.find_element(By.XPATH, xpath)
             print(f"Elemento encontrado: {element}")
             time.sleep(0.2)
@@ -425,24 +442,15 @@ class ZOP:
             raise Exception(
                 f"A opção '{option_selected}' não é válida. Utilize msg_menu_options e selecione um argumento válido.")
 
-    def open_message_menu(self, message):
-        """Deve ser usado enquanto o chat estiver aberto e o mouse precisa passar por cima da mensagem
-        para que abra o menu
-
-        Args:
-            message (WebElement): O elemento web da mensagem para que o menu seja aberto naquela mensagem em específico
-
-        """
-        self.action.move_to_element(message).perform()
-        time.sleep(0.2)
-        message_menu_button = self.find_button(Buttons_options.MESSAGE_MENU)
-        self.action.move_to_element(message_menu_button).click().perform()
-
     def react_a_message(self, message_complete_element, reaction):
         # self.open_message_menu(message_complete_element)
         self.click_message_option(
             message_complete_element, Msg_menu_options.REACT)
-        self.click_on_react_options(reaction)
+        time.sleep(0.5)
+        elements = self.browser.find_elements(
+            By.XPATH, f"//div[contains(@class, 'tvf2evcx')]/div[@role='button']")
+        element = elements[reaction]
+        element.click()
 
         # Achar elementos web
         # Achar elementos web
@@ -461,7 +469,7 @@ class ZOP:
             By.XPATH, '../../../..')
         return complete_element
 
-        # fazer o options
+        # fazer o options e criar um def só chamado find_utils.
 
     def find_chat(self):
         """Deve ser usado para localizar o chat
@@ -488,11 +496,11 @@ class ZOP:
             ALL = retorna os elementos de todas as mensagens do chat.  \n
         """
         if option == Msg_options.IN:
-            return self.browser.find_elements(By.XPATH, '//div[contains(@class, "message-in")]//span[@class="_11JPr selectable-text copyable-text"]')
+            return self.browser.find_elements(By.XPATH, "//div[contains(@class, 'message-in')]//div[contains(@class, 'copyable-text')]//div[@class='_21Ahp']//span[@class='_11JPr selectable-text copyable-text']")
         if option == Msg_options.OUT:
-            return self.browser.find_elements(By.XPATH, "//div[contains(@class, 'message-out') and contains(@class, 'focusable-list-item') and contains(@class, '_1AOLJ') and contains(@class, '_2UtSC') and contains(@class, '_1jHIY')]")
+            return self.browser.find_elements(By.XPATH, "//div[contains(@class, 'message-out')]//div[contains(@class, 'copyable-text')]//div[@class='_21Ahp']//span[@class='_11JPr selectable-text copyable-text']")
         if option == Msg_options.ALL:
-            return self.browser.find_elements(By.XPATH, "//div[contains(@class, 'message-in') or contains(@class, 'message-out')][contains(@class, 'focusable-list-item') and contains(@class, '_1AOLJ') and contains(@class, '_2UtSC') and contains(@class, '_1jHIY')]")
+            return self.browser.find_elements(By.XPATH, "//div[contains(@class, 'message-out')]//div[contains(@class, 'copyable-text')]//div[@class='_21Ahp']//span[@class='_11JPr selectable-text copyable-text'] | //div[contains(@class, 'message-in')]//div[contains(@class, 'copyable-text')]//div[@class='_21Ahp']//span[@class='_11JPr selectable-text copyable-text']")
         else:
             raise Exception(
                 "Ao utilizar o find_messages() é preciso um argumento válido. Utilize msg_options. e selecione o argumento")
@@ -549,12 +557,6 @@ class ZOP:
             raise Exception(
                 "Ao utilizar o find_button() é preciso um argumento válido. Utilize buttons_options. e selecione o argumento")
 
-    def click_on_react_options(self, react_option: int):
-        time.sleep(0.5)
-        elements = self.browser.find_elements(
-            By.XPATH, f"//div[contains(@class, 'tvf2evcx')]/div[@role='button']")
-        element = elements[react_option]
-        element.click()
 
 # fazer depois
 # relogios = self.browser.find_elements(

@@ -145,27 +145,30 @@ comm = Comandos(bot)
 
 while True:
 
-    new_messages = bot.check_new_messages()
-    if new_messages:
+    time.sleep(2)
+    bot.search_contact("Julio Developer")
+    list_all = bot.find_messages(Msg_options.ALL)
+    print(list_all)
+    allm = []
+    for text in list_all:
+        msg = text.text
+        allm.append(msg)
+    print(allm)
+    complete = bot.find_message_complete_element(list_all[-1])
+    print(complete)
+    # bot.react_a_message(complete, React_options.HEART)
+    bot.send_message_on_chat("Vamo?😃")
 
-        message_element_list = bot.find_messages(Msg_options.IN)
-        for message_element in message_element_list:
-            if "!apresentar" in message_element.text:
-                print(message_element.text)
-                # bot.click_message_option(
-                # message_element, Msg_menu_options.REPLY)
-                # txt = '''Eu irei reagir a essa mensagem.'''
-                # bot.send_message_on_chat(txt)
-                complete = bot.find_message_complete_element(message_element)
-                bot.react_a_message(complete, React_options.LIKE)
-                time.sleep(1)
+    # last_message_out = bot.get_messages_elements(Msg_options.IN)[-1]
+    # complete = bot.find_message_complete_element(last_message_out)
+    # bot.react_a_message(complete, React_options.HEART)
+    time.sleep(0.5)
+    # bot.send_file_in_input(Input_options.DOCUMENT, r"C:\Users\julyo\Music\[AMV] Kizumonogatari - Castle(MP3_160K).mp3", "Se liga no som")
+    bot.close_chat()
+    # campo = bot.find_field(Field_options.MESSAGE)
+    # time.sleep(1)
+    # campo.send_keys("Favoritado", Keys.ENTER)
 
-        bot.find_button(Buttons_options.CHAT_MENU)
-        bot.close_chat()
-        # campo = bot.find_field(Field_options.MESSAGE)
-        # time.sleep(1)
-        # campo.send_keys("Favoritado", Keys.ENTER)
-
-        time.sleep(5)
-        # bot.forward_message(-1, ["Julio Developer", "𝙱𝙸𝚉𝙰𝚁𝚁𝙴 𝙳𝙴𝚂𝚃𝙸𝙽𝚈 – 𝑭𝑰𝑪𝑯𝑨𝑺"])
-        # bot.close_chat()
+    time.sleep(50)
+    # bot.forward_message(-1, ["Julio Developer", "𝙱𝙸𝚉𝙰𝚁𝚁𝙴 𝙳𝙴𝚂𝚃𝙸𝙽𝚈 – 𝑭𝑰𝑪𝑯𝑨𝑺"])
+    # bot.close_chat()
