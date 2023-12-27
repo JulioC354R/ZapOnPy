@@ -431,8 +431,7 @@ class ZOP:
                 Buttons_options.MESSAGE_MENU)
             self.action.move_to_element(message_menu_button).click().perform()
 
-            xpath = f"// *[contains(@class, 'iWqod') and contains(@class, '_1MZM5') and contains(@class, '_2BNs3') and @role='button' and @aria-label='{
-                option_selected}']"
+            xpath = f"// *[contains(@class, 'iWqod') and contains(@class, '_1MZM5') and contains(@class, '_2BNs3') and @role='button' and @aria-label='{option_selected}']"
             element = self.browser.find_element(By.XPATH, xpath)
             print(f"Elemento encontrado: {element}")
             time.sleep(0.2)
