@@ -147,15 +147,6 @@ while True:
 
     time.sleep(2)
     bot.search_contact("Julio Developer")
-    list_all = bot.find_messages(Msg_options.ALL)
-    print(list_all)
-    allm = []
-    for text in list_all:
-        msg = text.text
-        allm.append(msg)
-    print(allm)
-    complete = bot.find_message_complete_element(list_all[-1])
-    print(complete)
     # bot.react_a_message(complete, React_options.HEART)
     bot.send_message_on_chat("Vamo?😃")
 
