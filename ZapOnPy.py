@@ -13,7 +13,7 @@ from selenium.common.exceptions import *
 import time
 from selenium.webdriver.common.keys import Keys
 from options import *
-import pyvirtualdisplay
+from pyvirtualdisplay import Display
 #
 # APRENDER SOBRE DECORATORS E USAR ESSA FUNÇÃO PARA DAR LOG AO EXECUTAR CADA UMA DAS MINHAS FUNÇÕES.
 #
@@ -42,8 +42,6 @@ class ZOP:
         self.action = None
         self.browser = None
         self.approved = False
-        self.virtual_display = pyvirtualdisplay.Display(
-            visible=False, size=(640, 480))
         self.login(save_login, headless)
 
     def login(self, save_login, headless):
@@ -60,10 +58,11 @@ class ZOP:
                 options.add_argument(f"--user-data-dir={userdir}")
             if headless:
                 # Executar em modo headless
-                options.add_argument('--headless=new')
-                options.add_argument('--disable-gpu')
-                options.add_argument('--window-size=1200x600')
-            self.browser = webdriver.Chrome(options=options, service=service)
+                # options.add_argument('--headless=new')
+                # options.add_argument('--disable-gpu')
+                options.add_argument('--window-size=600x800')
+                with Display(visible=True, size=(800, 600)):
+                    self.browser = webdriver.Chrome(options=options, service=service)
         else:
             # iniciar sem nenhuma configuração
             self.browser = webdriver.Chrome(service=service)
@@ -206,7 +205,6 @@ class ZOP:
         self.false_typing(1.5)
         time.sleep(0.5)
         try:
-            self.virtual_display.start()
             pyperclip.copy(text)
             time.sleep(0.5)
             message_field = self.find_field(Field_options.MESSAGE)
@@ -214,14 +212,10 @@ class ZOP:
             time.sleep(0.2)
             # edit = self.browser.find_element(
             # By.XPATH, '//div[@class="_3Uu1_"]//div[@class="g0rxnol2 ln8gz9je lexical-rich-text-input"]//div[@class="to2l77zo gfz4du6o ag5g9lrv bze30y65 kao4egtt"]//span[@class="selectable-text copyable-text"]')
-
-            message_field.send_keys(".")
-            message_field.send_keys(Keys.BACK_SPACE)
             time.sleep(0.5)
             # Pressiona "Enter" para enviar a mensagem
             message_field.send_keys(Keys.ENTER)
             logging.info('Mensagem enviada')
-            self.virtual_display.stop()
         except Exception as e:
             logging.error(f'Ocorreu um erro ao mandar a mensagem {e}')
         if get_out:
@@ -431,7 +425,8 @@ class ZOP:
                 Buttons_options.MESSAGE_MENU)
             self.action.move_to_element(message_menu_button).click().perform()
 
-            xpath = f"// *[contains(@class, 'iWqod') and contains(@class, '_1MZM5') and contains(@class, '_2BNs3') and @role='button' and @aria-label='{option_selected}']"
+            xpath = f"// *[contains(@class, 'iWqod') and contains(@class, '_1MZM5') and contains(@class, '_2BNs3') and @role='button' and @aria-label='{
+                option_selected}']"
             element = self.browser.find_element(By.XPATH, xpath)
             print(f"Elemento encontrado: {element}")
             time.sleep(0.2)
