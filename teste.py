@@ -140,7 +140,7 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
-bot = ZOP(True, False)
+bot = ZOP(True, True)
 comm = Comandos(bot)
 
 while True:

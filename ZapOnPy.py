@@ -49,7 +49,7 @@ class ZOP:
     def login(self, save_login, headless):
         qrcode_xpath = '//*[@id="app"]/div/div[2]/div[3]/div[1]/div/div/div[2]/div/canvas'
         '''Inicializar o webdriver com os dados de login ou não'''
-        driver_path = "./driver/chromedriver.exe"    # no windows colocar chromedriver.exe
+        driver_path = "./driver/chromedriver"    # no windows colocar chromedriver.exe
         service = webdriver.ChromeService(executable_path=driver_path)
 
         if save_login or headless:
