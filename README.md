@@ -16,7 +16,17 @@ O projeto será dividido em duas etapas, a primeira será a criação do chatbot
 
 ### Este projeto foi feito com base no whatsapp web, para o pleno funcionamento dele é preciso de algumas configurações:
 
-- instalar as bibliotecas (a divulgar) Selenium, pyperclip, webdriver-manager, pip install xvfbwrapper
+- instalar as bibliotecas:
+pip install selenium
+pip install pyperclip
+pip install opencv-python
+pip install pyzbar
+pip install qrcode
+pip install pygetwindow
+pip install pyvirtualdisplay 
+
+
+
 - Baixar navegador chrome e o webdriver compatíveis, verifique a versão do seu computador e baixe aqui os webdrivers compatíveis:
 [Chrome Driver para versões mais novas](https://googlechromelabs.github.io/chrome-for-testing/#stable)
 [Todas as versões](https://chromedriver.chromium.org/downloads)

@@ -13,24 +13,17 @@ from selenium.common.exceptions import *
 import time
 from selenium.webdriver.common.keys import Keys
 from options import *
-from pyvirtualdisplay import Display
+import pygetwindow as gw
+import platform
 #
 # APRENDER SOBRE DECORATORS E USAR ESSA FUNÇÃO PARA DAR LOG AO EXECUTAR CADA UMA DAS MINHAS FUNÇÕES.
 #
 #
 # #
 
-""" 
-def log_execution(func):
-    def wrapper(*args, **kwargs):
-        logging.info(f"Executando função: {func.__name__}")
-        result = func(*args, **kwargs)
-        logging.info(f"Função {func.__name__} concluída")
-        return result
-    return wrapper
 
 
-"""
+
 
 
 class ZOP:
@@ -44,32 +37,64 @@ class ZOP:
         self.approved = False
         self.login(save_login, headless)
 
+    """def log_execution(func):
+        def wrapper(*args, **kwargs):
+            logging.info(f"Executando função: {func.__name__}")
+            result = func(*args, **kwargs)
+            logging.info(f"Função {func.__name__} concluída")
+            return result
+        return wrapper"""
+
+
     def login(self, save_login, headless):
         qrcode_xpath = '//*[@id="app"]/div/div[2]/div[3]/div[1]/div/div/div[2]/div/canvas'
         '''Inicializar o webdriver com os dados de login ou não'''
-        driver_path = "./driver/chromedriver"    # no windows colocar chromedriver.exe
-        service = webdriver.ChromeService(executable_path=driver_path)
+        
+        options = webdriver.ChromeOptions()
+        userdir = os.path.abspath('chromewithlogin/')
+        
+        #otimização:
 
-        if save_login or headless:
-            options = webdriver.ChromeOptions()
-            # ao usar linux alterar para 'chromewithlogin/'
-            userdir = os.path.abspath('chromewithlogin/')
-            if save_login:
-                options.add_argument(f"--user-data-dir={userdir}")
-            if headless:
-                # Executar em modo headless
-                # options.add_argument('--headless=new')
-                # options.add_argument('--disable-gpu')
-                options.add_argument('--window-size=600x800')
-                with Display(visible=True, size=(800, 600)):
-                    self.browser = webdriver.Chrome(
-                        options=options, service=service)
-        else:
-            # iniciar sem nenhuma configuração
-            self.browser = webdriver.Chrome(service=service)
+        options.add_argument("--align-wakeups")
+        options.add_argument("--back-forward-cache=force-caching-all-pages")
+        options.add_argument("--calculate-native-win-occlusion")
+        options.add_argument("--enable-drdc")
+        options.add_argument("--enable-parallel-downloading")
+        options.add_argument("--enable-quic")
+        options.add_argument("--enable-throttle-display-none-and-visibility-hidden-cross-origin-iframes")
+        options.add_argument("--enable-vulkan")
+        options.add_argument("--enable-webassembly-lazy-compilation")
+        options.add_argument("--overlay-strategies=occluded-and-unoccluded-buffers")
+        options.add_argument("--quick-intensive-throttling-after-loading")
+        options.add_argument("--subframe-shutdown-delay")
+        options.add_argument("--unthrottled-nested-timeout")
+        options.add_argument("--enable-gpu-rasterization")
+        options.add_argument("--enable-waitable-swap-chain=1")  # Pode ajustar o valor conforme necessário (1, 2 ou 3)
+        options.add_argument("--enable-zero-copy")
+        options.add_argument("--ignore-gpu-blocklist")
+        options.add_argument("--use-angle")
+
+        if save_login:
+            options.add_argument(f"--user-data-dir={userdir}")
+        if platform.system() == "Linux":
+            from pyvirtualdisplay import Display
+            display = Display(visible=0, size=(800, 600))
+            display.start()
+            driver_path = "./driver/chromedriver"
+        if platform.system() == "Windows":
+            driver_path = "./driver/chromedriver.exe"
+
+        
+        service = webdriver.ChromeService(executable_path=driver_path)
+        self.browser = webdriver.Chrome(options=options, service=service)
+
+        if headless:
+            # Não estou utilizando o modo headless pois ele desativa a área de trânsferência pro navegador
+            if platform.system() == "Windows":
+                chrome_window = gw.getWindowsWithTitle('Google Chrome')[0]
+                chrome_window.moveTo(-2000, -2000)
         # inicializando action Chains
         self.action = ActionChains(self.browser)
-
         self.browser.get('https://web.whatsapp.com/')
 
         self.qrcode_in_terminal(qrcode_xpath)
@@ -203,19 +228,23 @@ class ZOP:
 
     def send_message_on_chat(self, text: str, get_out=True):
         '''Envia uma mensagem quando o chat tá aberto, o get_out é para sair do chat ao enviar a mensagem'''
-        self.false_typing(1.5)
-        time.sleep(0.5)
+        #self.false_typing(1.5)
         try:
             pyperclip.copy(text)
-            time.sleep(0.5)
+            start_time = time.time()
+            time.sleep(0.1)
             message_field = self.find_field(Field_options.MESSAGE)
-            message_field.send_keys(Keys.CONTROL, "v")
-            time.sleep(0.2)
-            # edit = self.browser.find_element(
-            # By.XPATH, '//div[@class="_3Uu1_"]//div[@class="g0rxnol2 ln8gz9je lexical-rich-text-input"]//div[@class="to2l77zo gfz4du6o ag5g9lrv bze30y65 kao4egtt"]//span[@class="selectable-text copyable-text"]')
-            time.sleep(0.5)
+            message_field.send_keys(Keys.CONTROL, "v") #tentar usar pyperclip pra ver se funciona
+            #time.sleep(0.2)
+            #for line in text.split("\n"):
+                #script_write_message = """document.execCommand('insertText', false, arguments[0]);"""
+                #self.browser.execute_script(script_write_message, line)
+               #message_field.send_keys(Keys.SHIFT, Keys.ENTER)
             # Pressiona "Enter" para enviar a mensagem
+            time.sleep(0.2)
             message_field.send_keys(Keys.ENTER)
+            end_time = time.time()
+            print("Tempo de execução: ",  end_time - start_time)
             logging.info('Mensagem enviada')
         except Exception as e:
             logging.error(f'Ocorreu um erro ao mandar a mensagem {e}')
