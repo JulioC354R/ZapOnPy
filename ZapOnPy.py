@@ -13,7 +13,6 @@ from selenium.common.exceptions import *
 import time
 from selenium.webdriver.common.keys import Keys
 from options import *
-import pygetwindow as gw
 import platform
 #
 # APRENDER SOBRE DECORATORS E USAR ESSA FUNÇÃO PARA DAR LOG AO EXECUTAR CADA UMA DAS MINHAS FUNÇÕES.
@@ -91,6 +90,7 @@ class ZOP:
         if headless:
             # Não estou utilizando o modo headless pois ele desativa a área de trânsferência pro navegador
             if platform.system() == "Windows":
+                import pygetwindow as gw
                 chrome_window = gw.getWindowsWithTitle('Google Chrome')[0]
                 chrome_window.moveTo(-2000, -2000)
         # inicializando action Chains
