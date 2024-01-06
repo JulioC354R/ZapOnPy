@@ -4,3 +4,5 @@ pyvenv.cfg
 BotAutoPy.log
 chromewithlogin/
 .vscode/
+__pycache__/
+.gitattributes

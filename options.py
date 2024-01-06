@@ -37,53 +37,38 @@ class Input_options:
 
 
 class Field_options:
-    """Campos de inserção de texto
-    """
+    """Campos de inserção de texto"""
+
     MESSAGE = "message"
-    """Campo para escrever mensagnes
-    """
+    """Campo para escrever mensagnes"""
     TITTLE = "tittle"
-    """Campo para escrever o título em imagens e documentos
-    """
+    """Campo para escrever o título em imagens e documentos"""
     FOWARD = "foward"
-    """Campo para procurar e selecionar (selecione usando send_keys(Keys.ENTER)) os contatos para encaminhar a mensagem
-    """
+    """Campo para procurar e selecionar (selecione usando send_keys(Keys.ENTER)) os contatos para encaminhar a mensagem"""
     CONTACT = "contact"
-    """Campo para procurar e entrar (entre usando send_keys(Keys.ENTER)) no chat especificado
-    """
+    """Campo para procurar e entrar (entre usando send_keys(Keys.ENTER)) no chat especificado"""
     REACTION = "reaction"
-    """Campo para procurar  e selecionar uma reação no campo de reações
-    """
+    """Campo para procurar  e selecionar uma reação no campo de reações"""
 
 
 class Buttons_options:
     READMORE = "readmore"
-    """Botão leia mais, clique para estender as mensagens muito longas
-    """
+    """Botão leia mais, clique para estender as mensagens muito longas"""
     ATTACH = "attach"
-    """Botão de anexo, clique nele para liberar o Input e para usar outras funções relacionadas
-    """
+    """Botão de anexo, clique nele para liberar o Input e para usar outras funções relacionadas"""
     CHAT_MENU = "chat_menu"
-    """Botão de menu do chat, clique para liberar as opções de menu do chat
-    """
+    """Botão de menu do chat, clique para liberar as opções de menu do chat"""
     CLEAR_CHAT = "clear_chat"
-    """Boão de Limpar o chat, clique para limpar o chat (as opções de menu devem estar abertas)
-    """
+    """Boão de Limpar o chat, clique para limpar o chat (as opções de menu devem estar abertas)"""
     CLEAR_CONFIRM = "clear_confirm"
-    """Botão para confirmar a limpeza do chat, clique para limpar (opção Limpar o chat deve ter sido selecionada no menu)
-    """
+    """Botão para confirmar a limpeza do chat, clique para limpar (opção Limpar o chat deve ter sido selecionada no menu)"""
     FOWARD = "foward"
-    """Botão para encaminhar a mensagem selecionda, clique para abrir o campo de encaminhar (Para selecionar esse botão deve primeiro
-    abrir o menu da mensagem e selecionar a opcão encaminhar)
-    """
+    """Botão para encaminhar a mensagem selecionda, clique para abrir o campo de encaminhar (Para selecionar esse botão deve primeiro abrir o menu da mensagem e selecionar a opcão encaminhar)"""
     FOWARD_CONFIRM = "foward_confirm"
-    """Botão para confirmar o encaminhamento de mensagens, é usado após usar o field_foward para selecionar os contatos
-    para encaminhar as mensagens.
-    """
+    """Botão para confirmar o encaminhamento de mensagens, é usado após usar o field_foward para selecionar os contatos para encaminhar as mensagens."""
     MESSAGE_MENU = "message_menu"
-    """Botão para abrir o menu da mensagem, ele aparece ao mover o mouse sobre a mensagem.
-    """
-
+    """Botão para abrir o menu da mensagem, ele aparece ao mover o mouse sobre a mensagem."""
+    
 
 class Msg_menu_options:
 

@@ -1,4 +1,5 @@
 import os
+import random
 import re
 import time
 import logging
@@ -10,10 +11,19 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import *
+from selenium.webdriver.remote.webelement import WebElement
 import time
 from selenium.webdriver.common.keys import Keys
 from options import *
 import platform
+import pygetwindow as gw
+
+logging.basicConfig(
+filename='BotAutoPy.log',  # Nome do arquivo de log
+level=logging.INFO,
+format='%(asctime)s - %(levelname)s - %(message)s',
+encoding='utf-8'
+)
 #
 # APRENDER SOBRE DECORATORS E USAR ESSA FUNÇÃO PARA DAR LOG AO EXECUTAR CADA UMA DAS MINHAS FUNÇÕES.
 #
@@ -21,6 +31,14 @@ import platform
 # #
 
 
+"""def log_execution(func):
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        logging.info(f"Executando função: {func.__name__}")
+        result = func(*args, **kwargs)
+        logging.info(f"Função {func.__name__} concluída")
+        return result
+    return wrapper"""
 
 
 
@@ -36,17 +54,11 @@ class ZOP:
         self.approved = False
         self.login(save_login, headless)
 
-    """def log_execution(func):
-        def wrapper(*args, **kwargs):
-            logging.info(f"Executando função: {func.__name__}")
-            result = func(*args, **kwargs)
-            logging.info(f"Função {func.__name__} concluída")
-            return result
-        return wrapper"""
+
+
 
 
     def login(self, save_login, headless):
-        qrcode_xpath = '//*[@id="app"]/div/div[2]/div[3]/div[1]/div/div/div[2]/div/canvas'
         '''Inicializar o webdriver com os dados de login ou não'''
         
         options = webdriver.ChromeOptions()
@@ -72,6 +84,9 @@ class ZOP:
         options.add_argument("--enable-zero-copy")
         options.add_argument("--ignore-gpu-blocklist")
         options.add_argument("--use-angle")
+        options.add_argument("disable-infobars")
+        options.add_argument("--disable-extensions")
+        options.add_argument("--force-device-scale-factor=0.5")
 
         if save_login:
             options.add_argument(f"--user-data-dir={userdir}")
@@ -86,18 +101,23 @@ class ZOP:
         
         service = webdriver.ChromeService(executable_path=driver_path)
         self.browser = webdriver.Chrome(options=options, service=service)
+        
 
-        if headless:
-            # Não estou utilizando o modo headless pois ele desativa a área de trânsferência pro navegador
-            if platform.system() == "Windows":
-                import pygetwindow as gw
-                chrome_window = gw.getWindowsWithTitle('Google Chrome')[0]
-                chrome_window.moveTo(-2000, -2000)
+
+        # Não estou utilizando o modo headless pois ele desativa a área de trânsferência pro navegador
+        if platform.system() == "Windows":
+            import pygetwindow as gw
+            chrome_window = gw.getWindowsWithTitle('Google Chrome')[0]
+            if headless:
+                chrome_window.moveTo(-3000, -3000)
+            else:
+                chrome_window.moveTo(0, 0)
         # inicializando action Chains
         self.action = ActionChains(self.browser)
         self.browser.get('https://web.whatsapp.com/')
+        time.sleep(5)
 
-        self.qrcode_in_terminal(qrcode_xpath)
+        self.qrcode_in_terminal()
 
         time.sleep(5)
 
@@ -112,12 +132,12 @@ class ZOP:
         except Exception as e:
             logging.error(f"Erro ao abrir o Whatsapp \n{e}")
 
-    def qrcode_in_terminal(self, qrcode_xpath):
+    def qrcode_in_terminal(self):
         for _ in range(5):
             try:
-                qrcode = WebDriverWait(self.browser, 5).until(
+                qrcode = WebDriverWait(self.browser, 10).until(
                     EC.visibility_of_element_located(
-                        (By.XPATH, qrcode_xpath))
+                        (By.CLASS_NAME, "_19vUU")) #class do QRcode
                 )
                 qrcode.screenshot('qrcode.png')
                 qr = QR()
@@ -154,7 +174,12 @@ class ZOP:
             new_messages_element = self.browser.find_element(
                 By.XPATH, new_messages_xpath)
 
-            number_of_new_messages = int(new_messages_element.text)
+            try:
+                number_of_new_messages = int(new_messages_element.text)
+            except ValueError:
+                logging.info("Conversa marcada como não lida, novas mensagens definida como 1")
+                number_of_new_messages = 1
+            
             self.browser.find_element(
                 By.XPATH, '//*[@id="pane-side"]//div[contains(@class, "_2H6nH")][last()]').click()
 
@@ -164,42 +189,52 @@ class ZOP:
         except (NoSuchElementException, TimeoutException):
             logging.info("Não foram encontradas novas mensagens")
             return 0
+        
 
-    def get_messages(self, option=Msg_options.ALL):
-        """Retorna uma lista de mensagens em string
+    def get_messages_web_elements(self, option=Msg_options.ALL):
+        """Retorna uma lista WebElements das mensagens
 
         Args:
             option (str, optional): Opção de mensagem, pode ser In, Out ou All. Defaults to ALL.
-
         :Usage:
             ::
 
                 #Exemplo para pegar todos os tipos de mensagem:
                 messages = get_messages(option = Msg_options.ALL)
-
-        Returns:
-            _type_: _description_
         """
         elements_message = self.find_messages(option)
-        messages = []
+        elements_message.reverse()
+        return elements_message
 
-        for message in elements_message:
-            print(f'texto: {message.text}')
-            messages.append(message.text)
-        return messages
+    def get_message_text(self, message_web_element: WebElement):
+        """Pega o texto do WebElement da mensagem
 
-    def get_last_message(self, option: str):
+        Args:
+            message_web_element (WebElement): _description_
+
+        Returns:
+            string : O texto que está na mensagem
+        """
+        self.click_on_readmore(message_web_element)
+        text = message_web_element.text
+        return text
+    
+    def move_to(self, element: WebElement):
+        ac = ActionChains()
+        ac.move_to_element(element).perform()
+
+
+    def get_last_message_as_string(self, option: str):
         '''Pega a última mensagem em str e retorna ela, caso der erro, retorna None'''
-        # Localiza todos os botões "Leia mais"
-
         try:
-            self.click_on_readmore()
             time.sleep(0.5)
-            last_message = self.get_messages(option)[-1]
+            last_message = self.get_messages_web_elements(option)[-1]
+            self.click_on_readmore(last_message)
+            text = last_message.text
             logging.info(f'Mensagem pega: {last_message}')
-            return last_message
+            return text
         except NoSuchElementException:
-            pass
+            logging.error(f"Elemento não encontrado")
         except Exception as e:
             logging.error(f"Erro ao obter última mensagem: {e}")
             return None
@@ -220,31 +255,21 @@ class ZOP:
                 chat.send_keys(Keys.HOME)
                 time.sleep(0.2)
 
-            self.click_on_readmore()
-            logging.info(f'Função executada:')
-
         except Exception as e:
             logging.error(f"Erro ao obter todas as mensagens: {str(e)}")
 
-    def send_message_on_chat(self, text: str, get_out=True):
-        '''Envia uma mensagem quando o chat tá aberto, o get_out é para sair do chat ao enviar a mensagem'''
-        #self.false_typing(1.5)
+    def send_message_on_chat(self, text: str, get_out=False):
+        '''Envia uma mensagem quando o chat tá aberto, o get_out é para sair do chat ao enviar a mensagem
+        por padrão ele não vai sair do chat ao enviar a mensagem'''
+        self.false_typing()
         try:
             pyperclip.copy(text)
-            start_time = time.time()
+            
             time.sleep(0.1)
             message_field = self.find_field(Field_options.MESSAGE)
             message_field.send_keys(Keys.CONTROL, "v") #tentar usar pyperclip pra ver se funciona
-            #time.sleep(0.2)
-            #for line in text.split("\n"):
-                #script_write_message = """document.execCommand('insertText', false, arguments[0]);"""
-                #self.browser.execute_script(script_write_message, line)
-               #message_field.send_keys(Keys.SHIFT, Keys.ENTER)
-            # Pressiona "Enter" para enviar a mensagem
             time.sleep(0.2)
             message_field.send_keys(Keys.ENTER)
-            end_time = time.time()
-            print("Tempo de execução: ",  end_time - start_time)
             logging.info('Mensagem enviada')
         except Exception as e:
             logging.error(f'Ocorreu um erro ao mandar a mensagem {e}')
@@ -254,10 +279,11 @@ class ZOP:
     #
     # Fazer false_typing pegar um tempo aleatório a enviar, para que não seja reconhecido como bot.
     # #
-    def false_typing(self, wait_seconds: float):
-        '''Finge estar digitando pelo tempo de espera passado.
+    def false_typing(self, wait_seconds = 1):
+        '''Finge estar digitando pelo tempo de espera passado. Utiliza um delay adicional aleatório de até 1.7 segundos
         Parâmetros:
         \nwait_seconds = float -> tempo de espera'''
+        wait_seconds = wait_seconds + random.uniform(0.1, 1.7)
         try:
             logging.info(f'Fingindo digitação por {wait_seconds} segundos.')
             message_field = self.find_field(Field_options.MESSAGE)
@@ -304,18 +330,22 @@ class ZOP:
         '''procura o contato e entra na conversa'''
         try:
             contact_field = self.find_field(Field_options.CONTACT)
-            contact_field.send_keys(contact, Keys.ENTER)
+            pyperclip.copy(contact)
+            contact_field.send_keys(Keys.CONTROL,"v")
+            time.sleep(0.2)
+            contact_field.send_keys(Keys.ENTER)
             time.sleep(0.2)
             contact_field.send_keys(Keys.CONTROL, "a")
             contact_field.send_keys(Keys.BACKSPACE)
         except Exception as e:
             logging.error(f'Ocorreu um erro: {e}')
 
-    def click_on_readmore(self):
+    def click_on_readmore(self, message:WebElement):
         '''Função que clica em todos os "leia mais", para que as mensagens fiquem completas'''
-        readmore_bottons = self.find_button(Buttons_options.READMORE)
-        for botton in readmore_bottons:
-            botton.click()
+        readmore_bottons = message.find_elements(By.XPATH, './/div[@role="button" and contains(@class, "read-more-button")]')
+        if readmore_bottons:
+            for botton in readmore_bottons:
+                botton.click()
 
     def close_chat(self):
         try:
@@ -450,14 +480,13 @@ class ZOP:
         """
         if option_selected in Msg_menu_options.LIST_MENU_OPTIONS:
             self.action.move_to_element(message_element).perform()
-            time.sleep(0.2)
+            time.sleep(0.5)
             message_menu_button = self.find_button(
                 Buttons_options.MESSAGE_MENU)
             self.action.move_to_element(message_menu_button).click().perform()
 
             xpath = f"// *[contains(@class, 'iWqod') and contains(@class, '_1MZM5') and contains(@class, '_2BNs3') and @role='button' and @aria-label='{option_selected}']"
             element = self.browser.find_element(By.XPATH, xpath)
-            print(f"Elemento encontrado: {element}")
             time.sleep(0.2)
             element.click()
 
@@ -465,15 +494,16 @@ class ZOP:
             raise Exception(
                 f"A opção '{option_selected}' não é válida. Utilize msg_menu_options e selecione um argumento válido.")
 
-    def react_a_message(self, message_complete_element, reaction):
-        # self.open_message_menu(message_complete_element)
-        self.click_message_option(
-            message_complete_element, Msg_menu_options.REACT)
+    def react_a_message(self, message_element, reaction):
+        self.click_message_option(message_element, Msg_menu_options.REACT)
         time.sleep(0.5)
         elements = self.browser.find_elements(
             By.XPATH, f"//div[contains(@class, 'tvf2evcx')]/div[@role='button']")
         element = elements[reaction]
         element.click()
+
+
+
 
         # Achar elementos web
         # Achar elementos web
@@ -551,10 +581,6 @@ class ZOP:
                 "Ao utilizar o find_fields() é preciso um argumento válido. Utilize field_options. e selecione o argumento")
 
     def find_button(self, option=str):
-
-        if option == Buttons_options.READMORE:
-            return self.browser.find_elements(By.CLASS_NAME, 'read-more-button')
-
         if option == Buttons_options.ATTACH:
             return self.browser.find_element(By.CSS_SELECTOR, 'span[data-icon="attach-menu-plus"]')
 
@@ -562,10 +588,10 @@ class ZOP:
             return self.browser.find_element(By.XPATH, "//span[@data-icon='menu' and contains(@class, 'kiiy14zj')]")
 
         if option == Buttons_options.CLEAR_CHAT:
-            return self.browser.find_element(By.XPATH, "//div[@class='iWqod' and @aria-label='Limpar conversa']")
+            return self.browser.find_element(By.XPATH, '//div[@class="iWqod _1MZM5 _2BNs3" and @role="button" and @aria-label="Limpar conversa"]')
 
         if option == Buttons_options.CLEAR_CONFIRM:
-            return self.browser.find_element(By.XPATH, "//div[contains(@class, 'tvf2evcx') and contains(@class, 'm0h2a7mj') and contains(@class, 'lb5m6g5c') and contains(@class, 'j7l1k36l') and contains(@class, 'ktfrpxia') and contains(@class, 'nu7pwgvd') and contains(@class, 'p357zi0d') and contains(@class, 'dnb887gk') and contains(@class, 'gjuq5ydh') and contains(@class, 'i2cterl7') and contains(@class, 'i6vnu1w3') and contains(@class, 'qjslfuze') and contains(@class, 'ac2vgrno') and contains(@class, 'sap93d0t') and contains(@class, 'gndfcl4n')]")
+            return self.browser.find_elements(By.XPATH, "//div[contains(@class, 'tvf2evcx') and contains(@class, 'm0h2a7mj') and contains(@class, 'lb5m6g5c') and contains(@class, 'j7l1k36l') and contains(@class, 'ktfrpxia') and contains(@class, 'nu7pwgvd') and contains(@class, 'p357zi0d') and contains(@class, 'dnb887gk') and contains(@class, 'gjuq5ydh') and contains(@class, 'i2cterl7') and contains(@class, 'i6vnu1w3') and contains(@class, 'qjslfuze') and contains(@class, 'ac2vgrno') and contains(@class, 'sap93d0t') and contains(@class, 'gndfcl4n')]")[-1]
 
         if option == Buttons_options.FOWARD:
             return self.browser.find_element(By.XPATH, '//button[@title="Encaminhar" and @type="button"]')

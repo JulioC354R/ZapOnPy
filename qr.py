@@ -33,9 +33,9 @@ class QR:
                 # Ajuste a escala conforme necessário
                 self.qr_code_in_terminal(link, scale=1)
             else:
-                print('Nenhum QR code encontrado na imagem.')
+                logging.info('Nenhum QR code encontrado na imagem.')
         except Exception as e:
-            print(f"Erro ao processar a imagem: {e}")
+            logging.info(f"Erro ao processar a imagem: {e}")
 
     def qr_code_in_terminal(self, data, scale=1.0):
         # Crie o objeto QRCode com o tamanho desejado

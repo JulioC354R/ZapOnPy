@@ -12,11 +12,30 @@ curiosos como eu e qualquer pessoa interessada em contribuir com meu projeto.
 
 O projeto será dividido em duas etapas, a primeira será a criação do chatbot para o RPG, a segunda será a adaptação, implementação e testes do produto final.
 
+# FAQs
+
+### Onde posso usar o chatbot?
+
+Atualmente estou desenvolvendo para ser compatível com o Windows e também sistemas Linux.
+
+### Ele tem modo Headless?
+
+O modo Headless é um modo que o navegador funciona sem interface gráfica, poupando recursos e sendo mais úteis para uso em servidores, porém devido a problemas a execução usando o modo headless e certas limitações como não poder escrever na mensagem caracteres em UTF-8 e também a demora para escrever mensagens longas, decidi utilizar um modo "FAKE HEADLESS".
+
+### Como funciona esse Fake Headless?
+Ao iniciar o bot tem a opção de utilizar o modo Headless ou não, ao dar True como parâmetro para o modo Headless, o navegador vai ser iniciado com interfaçe gráfica, porém no linux ele vai ter interface gráfica virtual e no Windows eu movi a Janela do navegador para uma área inacessível pelo mouse evitando assim atrapalhar o uso do usuário durante a execução do programa, entretanto deve-se lembrar que utilizo o pyperclip para executar o programa de forma mais rápida e eficaz, então é possível que ao mexer na área de transferência como copiar ou colar itens durante a execução do programa possa acarretar em eventos inesperados.
+
+### Funciona na núvem e em servidores?
+
+Sim, mas para o funcionamento é preciso instalar uma biblioteca para simular uma interface gráfica no caso do Linux. 
+
 # Instalação e configuração:
 
-### Este projeto foi feito com base no whatsapp web, para o pleno funcionamento dele é preciso de algumas configurações:
+Este projeto foi feito com base no whatsapp web, para o pleno funcionamento dele é preciso de algumas configurações:
 
-- instalar as bibliotecas:
+## Instalar as bibliotecas Python:
+Use esses comandos no terminal estando na pasta do projeto.
+```
 pip install selenium
 pip install pyperclip
 pip install opencv-python
@@ -24,11 +43,24 @@ pip install pyzbar
 pip install qrcode
 pip install pygetwindow
 pip install pyvirtualdisplay 
+```
+## Comandos para Linux:
+Use esses comandos no terminal estando na pasta do projeto.
+```
+sudo apt-get install libzbar0
+sudo apt-get install xvfb
+chmod +x ./driver/chromedriver
+```
 
 
 
-- Baixar navegador chrome e o webdriver compatíveis, verifique a versão do seu computador e baixe aqui os webdrivers compatíveis:
+
+## Baixar navegador chrome e o webdriver compatíveis: 
+
+Verifique a versão do chrome do seu computador e baixe aqui os webdrivers compatíveis:
+
 [Chrome Driver para versões mais novas](https://googlechromelabs.github.io/chrome-for-testing/#stable)
+
 [Todas as versões](https://chromedriver.chromium.org/downloads)
 
 Para deixar o Chrome mais rápido e sem animações do whatsapp Abra o Google Chrome.
@@ -57,13 +89,12 @@ Na seção "Acessibilidade", ative a opção "Reduzir movimento".
 - [x] Criar método para checar novas mensagens.
 - [x] Criar métodos para enviar mídia.
 - [x] Criar métodos para ler ultima mensagem.
-- [x] Criar métodos para enviar mensagem por número.
 - [x] Criar métodos para enviar mensagem por contato/grupo.
 - [x] Criar métodos para detectar de quem recebeu a mensagem.
 - [x] Criar sistema de cadastro de novos usuários no RPG (fichas).
 - [x] Funções de interação entre ADM e sistema.
 - [ ] Criar métodos para enviar enquetes.
-- [ ] Criar métodos para ler todas as novas mensagens de uma conversa.
+- [x] Criar métodos para ler todas as novas mensagens de uma conversa.
 - [ ] Criar métodos para ler dado de enquetes.
 - [ ] Criação do escopo do projeto.
 - [ ] Criar Grupos separados: Ficha, On, Off, Midia, Loja, Campanha, ADMS, Duelos, Avisos.

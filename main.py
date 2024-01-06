@@ -1,5 +1,5 @@
 from ZapOnPy import ZOP
-from commandos import Comandos
+from bot import Comandos
 import logging
 import time
 from options import *
@@ -23,7 +23,7 @@ while True:
     print(list_out)
     print(list_in)
     print(list_all)
-    last_message_out = bot.get_messages(Msg_options.OUT)[-1]
+    last_message_out = bot.get_messages_web_elements(Msg_options.OUT)[-1]
     complete = bot.find_message_complete_element(last_message_out)
     bot.react_a_message(complete, React_options.HEART)
     time.sleep(0.5)
