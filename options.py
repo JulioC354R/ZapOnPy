@@ -96,9 +96,11 @@ class Msg_menu_options:
     EDIT = "Editar"
     """Seleciona a opção EDITAR
     Deve ser usado após abrir o menu de mensagem (find_message_menu)"""
+    DOWNLOAD = "Baixar"
+    """Seleciona a opção BAIXAR
+    Deve ser usado após abrir o menu de mensagem (find_message_menu)"""
 
-    LIST_MENU_OPTIONS = [MSG_DATA, REPLY, REACT,
-                         FOWARD, FIX, FAVORITE, DELETE, EDIT]
+    LIST_MENU_OPTIONS = [MSG_DATA, REPLY, REACT, FOWARD, FIX, FAVORITE, DELETE, EDIT, DOWNLOAD]
 
 
 class React_options:

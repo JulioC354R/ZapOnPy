@@ -1,7 +1,7 @@
 import logging
 import random
 import time
-from dados import Data
+from data import Data
 from ZapOnPy import ZOP
 from options import *
 from selenium.webdriver.remote.webelement import WebElement
@@ -26,7 +26,7 @@ class Comandos:
             for turn , message_web_element in enumerate(messages_list):
                 if turn >= number_of_new_messages:
                     break
-                time.sleep(0.7)
+                time.sleep(0.2)
                 message = self.ZOP.get_message_text(message_web_element)
                 for comando in self.commands_list:
                     if comando in message:
@@ -49,7 +49,7 @@ class Comandos:
                     self.dados_por_numero(message)
 
                 if '!meus dados' in message:
-                    self.meus_dados(message)
+                    self.meus_dados()
 
                 if '!trocar atributos' in message:
                     self.trocar_atributos(message)
@@ -65,6 +65,10 @@ class Comandos:
                 
                 if '!meu numero' in message:
                     self.meu_numero()
+
+                if '!adicionar na loja' in message:
+                    self.add_to_store(message_web_element, message)
+
         except Exception as e:
             print(f"ERRO: {e}")
 
@@ -122,10 +126,8 @@ class Comandos:
     def aprovar(self, message = str):
         try:
             number = self.ZOP.get_number()
-            print(number)
             adm = self.is_adm(number)
             if adm:
-                print(adm)
                 split = message.split()
                 player_id = split[2]
                 message = data.aprove(int(player_id))
@@ -146,14 +148,15 @@ class Comandos:
             user_data = e
         self.ZOP.send_message_on_chat(user_data)
 
-    def meus_dados(self, message = str):
+    def meus_dados(self):
             number = self.ZOP.get_number()
             try:
                 player_id = data.search_player_by_number(number)
-                user_data = data.get_user_data(player_id)
+                message = data.get_user_data(player_id)
             except Exception as e:
-                user_data = e
-            self.ZOP.send_message_on_chat(user_data)
+                message = e
+            self.ZOP.send_message_on_chat(message)
+
     def trocar_atributos(self, message = str):
 
         number = self.ZOP.get_number()
@@ -229,6 +232,17 @@ class Comandos:
         if number in self.adms_numbers:
             return True
         return False
+    
+    def add_to_store(self, message_web_element, message_text):
+        """Adiciona um novo item a loja
+
+        Args:
+            message_web_element (WebElement): O WebElemento da mensagem do whatsapp
+            message_text (str): o texto da mensagem
+        """
+        self.ZOP.download_midia(message_web_element)
+        last_midia = data.rename_downloads()
+        data.set_store_itens(message_text, last_midia)
     
 
     def count_words(text: str):

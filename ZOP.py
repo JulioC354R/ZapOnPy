@@ -1,8 +1,7 @@
+import time
 from options import *
 from ZapOnPy import ZOP
 from bot import Comandos
-from dados import Data
-
 
 
 bot = ZOP(True, False)

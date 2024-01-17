@@ -1,0 +1,78 @@
+{
+    "data": {
+        "items": [
+            {
+                "id": 0,
+                "name": "Spell Book",
+                "description": "Magical knowledge in your hands.",
+                "price": 75,
+                "stock_quantity": 5,
+                "image": "/images/spell_book.png"
+            },
+            {
+                "id": 1,
+                "name": "Long Sword",
+                "description": "A sharp and durable blade.",
+                "price": 50,
+                "stock_quantity": 10,
+                "image": "/images/long_sword.jpg"
+            },
+            {
+                "id": 2,
+                "name": "Healing Potion",
+                "description": "Restores 50 health points.",
+                "price": 20,
+                "stock_quantity": 20,
+                "image": "/images/healing_potion.png"
+            },
+            {
+                "id": 3,
+                "name": "Short Bow",
+                "description": "Perfect for ranged attacks.",
+                "price": 35,
+                "stock_quantity": 8,
+                "image": "/images/short_bow.jpg"
+            },
+            {
+                "id": 4,
+                "name": "aaaaa",
+                "description": "\u00e9 bom",
+                "price": "1000",
+                "stock_quantity": "2",
+                "image": "caminho/do/arquivo"
+            },
+            {
+                "id": 5,
+                "name": "bbbbbbb",
+                "description": "\u00e9 borgwgrgrgm",
+                "price": "1022200",
+                "stock_quantity": "2318",
+                "image": "./downloads\\Media_3.jpeg"
+            },
+            {
+                "id": 6,
+                "name": "bbbbbbb",
+                "description": "\u00e9 borgwgrgrgm",
+                "price": "1022200",
+                "stock_quantity": "2318",
+                "image": "./downloads\\Media_5.jpeg"
+            },
+            {
+                "id": 7,
+                "name": "bbbbbbb",
+                "description": "\u00e9 borgwgrgrgm",
+                "price": "1022200",
+                "stock_quantity": "2318",
+                "image": "./downloads\\Media_6.jpeg"
+            },
+            {
+                "id": 8,
+                "name": "bbbbbbb",
+                "description": "\u00e9 borgwgrgrgm",
+                "price": "1022200",
+                "stock_quantity": "2318",
+                "image": "./downloads\\Media_2.jpeg"
+            }
+        ]
+    }
+}

@@ -16,7 +16,6 @@ import time
 from selenium.webdriver.common.keys import Keys
 from options import *
 import platform
-import pygetwindow as gw
 
 logging.basicConfig(
 filename='BotAutoPy.log',  # Nome do arquivo de log
@@ -88,11 +87,18 @@ class ZOP:
         options.add_argument("--disable-extensions")
         options.add_argument("--force-device-scale-factor=0.5")
 
+        #preferências (aqui estou colocando o caminho de downloads padrão dos arquivos baixados pelo chrome)
+        options.add_experimental_option('prefs', {
+            'download.default_directory': os.path.abspath("./downloads"),
+            'download.directory_upgrade': True,
+            'download.prompt_for_download': False
+        })
+
         if save_login:
             options.add_argument(f"--user-data-dir={userdir}")
         if platform.system() == "Linux":
             from pyvirtualdisplay import Display
-            display = Display(visible=0, size=(800, 600))
+            display = Display(visible=0, size=(1024, 768))
             display.start()
             driver_path = "./driver/chromedriver"
         if platform.system() == "Windows":
@@ -139,9 +145,9 @@ class ZOP:
                     EC.visibility_of_element_located(
                         (By.CLASS_NAME, "_19vUU")) #class do QRcode
                 )
-                qrcode.screenshot('qrcode.png')
+                qrcode.screenshot('./images/qrcode.png')
                 qr = QR()
-                qr.read_qrcode_img('qrcode.png')
+                qr.read_qrcode_img('./images/qrcode.png')
                 time.sleep(10)
             except (NoSuchElementException, TimeoutException):
                 logging.info("Qr code não encontrado.")
@@ -160,33 +166,29 @@ class ZOP:
             int : O número de novas mensagens no elemento do icone de novas mensagens
 
         Utilização:
-            Use a função self.get_messages() passando a quantidade de novas mensagens multiplicado
-            por -1 como index, assim vai pegar somente as novas mensagens daquele chat
+            
 
             OBS: ele encontra vários elementos mas a função [last()] no fim do xpath só retorna o ultimo
         """
 
-        new_messages_xpath = "//div[@class='_2H6nH']//span[@aria-label='Não lidas'][last()]"
+        new_messages_xpath = "//*[contains(concat(' ', @class, ' '), 'l7jjieqr') and contains(concat(' ', @class, ' '), 'cfzgl7ar') and contains(concat(' ', @class, ' '), 'ei5e7seu') and contains(concat(' ', @class, ' '), 'h0viaqh7') and contains(concat(' ', @class, ' '), 'tpmajp1w') and contains(concat(' ', @class, ' '), 'c0uhu3dl') and contains(concat(' ', @class, ' '), 'riy2oczp') and contains(concat(' ', @class, ' '), 'dsh4tgtl') and contains(concat(' ', @class, ' '), 'sy6s5v3r') and contains(concat(' ', @class, ' '), 'gz7w46tb') and contains(concat(' ', @class, ' '), 'lyutrhe2') and contains(concat(' ', @class, ' '), 'qfejxiq4') and contains(concat(' ', @class, ' '), 'fewfhwl7') and contains(concat(' ', @class, ' '), 'ovhn1urg') and contains(concat(' ', @class, ' '), 'ap18qm3b') and contains(concat(' ', @class, ' '), 'ikwl5qvt') and contains(concat(' ', @class, ' '), 'j90th5db') and contains(concat(' ', @class, ' '), 'aumms1qt')]"
         try:
-            WebDriverWait(self.browser, 300).until(
-                EC.visibility_of_element_located((By.XPATH, new_messages_xpath)))
-
-            new_messages_element = self.browser.find_element(
-                By.XPATH, new_messages_xpath)
+            new_messages_element = WebDriverWait(self.browser, 300).until(
+                EC.visibility_of_all_elements_located((By.XPATH, new_messages_xpath)))
 
             try:
-                number_of_new_messages = int(new_messages_element.text)
+                number_of_new_messages = int(new_messages_element[-1].text)
             except ValueError:
                 logging.info("Conversa marcada como não lida, novas mensagens definida como 1")
                 number_of_new_messages = 1
             
-            self.browser.find_element(
-                By.XPATH, '//*[@id="pane-side"]//div[contains(@class, "_2H6nH")][last()]').click()
+            new_messages_element[-1].click()
 
             logging.info(
                 f"Foram encontradas novas mensagens: {number_of_new_messages}")
             return number_of_new_messages
         except (NoSuchElementException, TimeoutException):
+
             logging.info("Não foram encontradas novas mensagens")
             return 0
         
@@ -438,15 +440,14 @@ class ZOP:
         self.find_button(Buttons_options.CLEAR_CONFIRM).click()
         time.sleep(0.2)
 
-    def forward_message(self, index=-1, to=1):
+    def forward_message(self, message: WebElement, to=1):
         try:
             if len(to) > 5:
                 raise ValueError(
                     "O Whatsapp somente encaminha 5 mensagens por vez.")
-            self.open_message_menu(index)
-            self.find_button(Buttons_options.FOWARD).click()
+            self.click_message_option(message, Msg_menu_options.FOWARD)
             time.sleep(0.5)
-            self.find_button(Buttons_options.FOWARD).click()
+           
 
             for contact in to:
                 pyperclip.copy(contact)
@@ -454,10 +455,10 @@ class ZOP:
                     Keys.CONTROL, 'v')
                 time.sleep(0.2)
                 self.find_field(Field_options.FOWARD).send_keys(Keys.ENTER)
+                time.sleep(0.5)
 
-            time.sleep(0.2)
             self.find_button(Buttons_options.FOWARD_CONFIRM).click()
-            time.sleep(1)
+            time.sleep(1.5)
             self.close_chat()
             time.sleep(0.2)
 
@@ -501,6 +502,10 @@ class ZOP:
             By.XPATH, f"//div[contains(@class, 'tvf2evcx')]/div[@role='button']")
         element = elements[reaction]
         element.click()
+    
+    def download_midia(self, message_element):
+        self.click_message_option(message_element, Msg_menu_options.DOWNLOAD)
+        time.sleep(1)
 
 
 
@@ -549,24 +554,24 @@ class ZOP:
             ALL = retorna os elementos de todas as mensagens do chat.  \n
         """
         if option == Msg_options.IN:
-            return self.browser.find_elements(By.XPATH, "//div[contains(@class, 'message-in')]//div[contains(@class, 'copyable-text')]//div[@class='_21Ahp']//span[@class='_11JPr selectable-text copyable-text']")
+            return WebDriverWait(self.browser, 5).until(EC.presence_of_all_elements_located((By.XPATH, "//div[contains(@class, 'message-in')]//div[contains(@class, 'copyable-text')]//div[@class='_21Ahp']//span[@class='_11JPr selectable-text copyable-text']")))
         if option == Msg_options.OUT:
-            return self.browser.find_elements(By.XPATH, "//div[contains(@class, 'message-out')]//div[contains(@class, 'copyable-text')]//div[@class='_21Ahp']//span[@class='_11JPr selectable-text copyable-text']")
+            return WebDriverWait(self.browser, 5).until(EC.presence_of_all_elements_located((By.XPATH, "//div[contains(@class, 'message-out')]//div[contains(@class, 'copyable-text')]//div[@class='_21Ahp']//span[@class='_11JPr selectable-text copyable-text']")))
         if option == Msg_options.ALL:
-            return self.browser.find_elements(By.XPATH, "//div[contains(@class, 'message-out')]//div[contains(@class, 'copyable-text')]//div[@class='_21Ahp']//span[@class='_11JPr selectable-text copyable-text'] | //div[contains(@class, 'message-in')]//div[contains(@class, 'copyable-text')]//div[@class='_21Ahp']//span[@class='_11JPr selectable-text copyable-text']")
+            return WebDriverWait(self.browser, 5).until(EC.presence_of_all_elements_located((By.XPATH, "//div[contains(@class, 'message-out')]//div[contains(@class, 'copyable-text')]//div[@class='_21Ahp']//span[@class='_11JPr selectable-text copyable-text'] | //div[contains(@class, 'message-in')]//div[contains(@class, 'copyable-text')]//div[@class='_21Ahp']//span[@class='_11JPr selectable-text copyable-text']")))
         else:
             raise Exception(
                 "Ao utilizar o find_messages() é preciso um argumento válido. Utilize msg_options. e selecione o argumento")
 
     def find_field(self, option=str):
         if option == Field_options.MESSAGE:
-            return self.browser.find_element(By.XPATH, '//*[@id="main"]/footer/div[1]/div/span[2]/div/div[2]/div[1]/div/div[1]/p')
+            return WebDriverWait(self.browser, 5).until(EC.presence_of_element_located((By.XPATH, '//*[@id="main"]/footer/div[1]/div/span[2]/div/div[2]/div[1]/div/div[1]/p')))
         if option == Field_options.TITTLE:
-            return self.browser.find_element(By.XPATH, "//div[@class='to2l77zo gfz4du6o ag5g9lrv fe5nidar kao4egtt']")
+            return WebDriverWait(self.browser, 5).until(EC.presence_of_element_located((By.XPATH, "//div[@class='to2l77zo gfz4du6o ag5g9lrv fe5nidar kao4egtt']")))
         if option == Field_options.FOWARD:
-            return self.browser.find_element(By.XPATH, '//p[@class="selectable-text copyable-text iq0m558w g0rxnol2"]')
+            return WebDriverWait(self.browser, 5).until(EC.presence_of_element_located((By.XPATH, '//p[@class="selectable-text copyable-text iq0m558w g0rxnol2"]')))
         if option == Field_options.CONTACT:
-            return self.browser.find_element(By.CLASS_NAME, "to2l77zo")
+            return WebDriverWait(self.browser, 5).until(EC.presence_of_element_located((By.CLASS_NAME, "to2l77zo")))
         if option == Field_options.REACTION:
             pass  # AINDA PRECISO FAZER!!!!!!!!!!!!!
             # AINDA PRECISO FAZER!!!!!!!!!!!!!
@@ -582,30 +587,30 @@ class ZOP:
 
     def find_button(self, option=str):
         if option == Buttons_options.ATTACH:
-            return self.browser.find_element(By.CSS_SELECTOR, 'span[data-icon="attach-menu-plus"]')
+            return WebDriverWait(self.browser, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'span[data-icon="attach-menu-plus"]')))
 
         if option == Buttons_options.CHAT_MENU:
-            return self.browser.find_element(By.XPATH, "//span[@data-icon='menu' and contains(@class, 'kiiy14zj')]")
+            return WebDriverWait(self.browser, 5).until(EC.presence_of_element_located((By.XPATH, "//span[@data-icon='menu' and contains(@class, 'kiiy14zj')]")))
 
         if option == Buttons_options.CLEAR_CHAT:
-            return self.browser.find_element(By.XPATH, '//div[@class="iWqod _1MZM5 _2BNs3" and @role="button" and @aria-label="Limpar conversa"]')
+            return WebDriverWait(self.browser, 5).until(EC.presence_of_element_located((By.XPATH, '//div[@class="iWqod _1MZM5 _2BNs3" and @role="button" and @aria-label="Limpar conversa"]')))
 
         if option == Buttons_options.CLEAR_CONFIRM:
-            return self.browser.find_elements(By.XPATH, "//div[contains(@class, 'tvf2evcx') and contains(@class, 'm0h2a7mj') and contains(@class, 'lb5m6g5c') and contains(@class, 'j7l1k36l') and contains(@class, 'ktfrpxia') and contains(@class, 'nu7pwgvd') and contains(@class, 'p357zi0d') and contains(@class, 'dnb887gk') and contains(@class, 'gjuq5ydh') and contains(@class, 'i2cterl7') and contains(@class, 'i6vnu1w3') and contains(@class, 'qjslfuze') and contains(@class, 'ac2vgrno') and contains(@class, 'sap93d0t') and contains(@class, 'gndfcl4n')]")[-1]
+            return WebDriverWait(self.browser, 5).until(EC.presence_of_all_elements_located((By.XPATH, "//div[contains(@class, 'tvf2evcx') and contains(@class, 'm0h2a7mj') and contains(@class, 'lb5m6g5c') and contains(@class, 'j7l1k36l') and contains(@class, 'ktfrpxia') and contains(@class, 'nu7pwgvd') and contains(@class, 'p357zi0d') and contains(@class, 'dnb887gk') and contains(@class, 'gjuq5ydh') and contains(@class, 'i2cterl7') and contains(@class, 'i6vnu1w3') and contains(@class, 'qjslfuze') and contains(@class, 'ac2vgrno') and contains(@class, 'sap93d0t') and contains(@class, 'gndfcl4n')]")))[-1]
 
         if option == Buttons_options.FOWARD:
-            return self.browser.find_element(By.XPATH, '//button[@title="Encaminhar" and @type="button"]')
+            return WebDriverWait(self.browser, 5).until(EC.presence_of_element_located((By.XPATH, '//button[@title="Encaminhar" and @type="button"]')))
 
         if option == Buttons_options.FOWARD_CONFIRM:
-            return self.browser.find_element(By.XPATH, "//div[contains(@class, 'lhggkp7q') and contains(@class, 'j2mzdvlq') and contains(@class, 'axi1ht8l') and contains(@class, 'mrtez2t4')]//span[@aria-label='Enviar']")
+            return WebDriverWait(self.browser, 5).until(EC.presence_of_element_located((By.XPATH, "//div[contains(@class, 'lhggkp7q') and contains(@class, 'j2mzdvlq') and contains(@class, 'axi1ht8l') and contains(@class, 'mrtez2t4')]//span[@aria-label='Enviar']")))
 
         if option == Buttons_options.MESSAGE_MENU:
-            return self.browser.find_element(By.XPATH, '//span[@data-icon="down-context"]')
+            return WebDriverWait(self.browser, 5).until(EC.presence_of_element_located((By.XPATH, '//span[@data-icon="down-context"]')))
 
         else:
             raise Exception(
                 "Ao utilizar o find_button() é preciso um argumento válido. Utilize buttons_options. e selecione o argumento")
-
+       
 
 # fazer depois
 # relogios = self.browser.find_elements(

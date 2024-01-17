@@ -5,7 +5,7 @@ import time
 from bot import Comandos
 import os
 import logging
-from dados import Data
+from data import Data
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -140,16 +140,19 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
-bot = ZOP(True, True)
+bot = ZOP(True, False)
 comm = Comandos(bot)
 
 while True:
 
     time.sleep(2)
     bot.search_contact("Julio Developer")
-    mensagens = bot.get_messages_web_elements()
-    bot.react_a_message(mensagens, React_options.HEART)
-    bot.send_message_on_chat("teste")
+    mensagens = bot.get_messages_web_elements(Msg_options.IN)
+    for msg in mensagens:
+        print(msg.text)
+    bot.react_a_message(mensagens[0], React_options.HEART)
+    bot.send_message_on_chat("Bo lol")
+    bot.close_chat()
 
 
 
