@@ -130,5 +130,12 @@ Na seção "Acessibilidade", ative a opção "Reduzir movimento".
 - [ ]  Implementar Módulo de Aprendizado de Máquina para Personalização
 - [ ]  Desenvolver Sistema de Feedback dos Usuários.
 
+# Ideias a serem consideradas:
+
+Utilizar multi instâncias de navegador para assim ter vários bots do whatsapp para atender a uma demanda maior.
+talvez criar sistema de sessões (o bot fica na conversa até que o cliente saia ou fique sem responder por 5 min) isso pode ser um pouco complicado em horários de pico mas vale a pena tentar
+Criar uma API para fazer a comunicação entre o banco de dados e o chatbot
+
+
 
 </details>
